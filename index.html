@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saku Cleo - Financial OS</title>
+    <title>Cleo Pocket - Financial OS</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,7 +66,7 @@
     <aside id="sidebar" class="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl flex flex-col transition-all duration-300 z-20 absolute md:relative h-full -translate-x-full md:translate-x-0">
         <div class="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800">
             <i class="ph-fill ph-wallet text-primary text-2xl mr-2"></i>
-            <span class="font-bold text-lg tracking-tight">Saku Cleo <span class="text-[10px] block font-normal text-slate-500 -mt-1">by ersandyf_</span></span>
+            <span class="font-bold text-lg tracking-tight">Cleo Pocket <span class="text-[10px] block font-normal text-slate-500 -mt-1">by ersandyf_</span></span>
             <button id="closeSidebar" class="md:hidden ml-auto text-slate-500"><i class="ph ph-x text-xl"></i></button>
         </div>
         <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-1">
@@ -796,7 +796,7 @@
         const DB = {
             async loadAll() {
                 if(state.useMock) {
-                    const local = localStorage.getItem('saku_cleo_data');
+                    const local = localStorage.getItem('cleo_pocket_data');
                     if(local) state.data = JSON.parse(local);
                 } else {
                     try {
@@ -812,7 +812,7 @@
                 }
                 this.calculateBalances();
             },
-            saveMock() { if(state.useMock) localStorage.setItem('saku_cleo_data', JSON.stringify(state.data)); },
+            saveMock() { if(state.useMock) localStorage.setItem('cleo_pocket_data', JSON.stringify(state.data)); },
             calculateBalances() {
                 const balances = {};
                 state.data.pockets.forEach(p => balances[p.id] = 0);
