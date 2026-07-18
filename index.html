@@ -737,13 +737,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // Pastikan hanya ada satu deklarasi ini di seluruh file Anda
         const SUPABASE_URL = "https://wduukpwuhmvzzccdaopr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkdXVrcHd1aG12enpjY2Rhb3ByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzNjQwOTksImV4cCI6MjA5OTk0MDA5OX0.pDrPLzLDbkmvUBbwfv3KxNieHeFDQpoJJJaLre5XQrM";
         
-        const supabase = window.supabase.createClient(
-            SUPABASE_URL,
-            SUPABASE_KEY
-        );
+        // Inisialisasi client hanya sekali
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         // --- UTILS & CORE ---
         const formatCurrency = (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount || 0);
