@@ -736,14 +736,14 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        const SUPABASE_URL = "https://wduukpwuhmvzzccdaopr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
-        
-       window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const supabase = window.supabaseClient; // Cukup satu kali ini saja.
-// Tambahan agar bisa diakses oleh fungsi DB di atas
-window.supabaseClient = supabase;
+<script>
+    // Inisialisasi Supabase hanya di sini
+    const SUPABASE_URL = "https://wduukpwuhmvzzccdaopr.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkdXVrcHd1aG12enpjY2Rhb3ByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzNjQwOTksImV4cCI6MjA5OTk0MDA5OX0.pDrPLzLDbkmvUBbwfv3KxNieHeFDQpoJJJaLre5XQrM";
+    
+    // Gunakan 'window.supabaseClient' untuk memastikan variabel ini aman secara global
+    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
         
         // --- UTILS & CORE ---
         const formatCurrency = (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount || 0);
