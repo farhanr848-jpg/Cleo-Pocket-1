@@ -1100,7 +1100,9 @@
             document.getElementById('detailProjectDate').innerText = `${formatDate(p.start_date)} ${p.end_date ? ' - '+formatDate(p.end_date) : '(Berjalan)'}`;
             document.getElementById('detailProjectStatus').value = p.status;
             
-            const pTx = state.data.transactions.filter(t => t.project_id === p.id).sort((a,b) => new Date(b.date) - new Date(a.date));
+            const pTx = state.data.transactions
+            .filter(t => t.project_id === p.id)
+            .sort((a,b) => new Date(a.date) - new Date(b.date));
             const sumAwal = pTx.filter(t => t.type === 'Saldo Awal').reduce((s,t) => s+Number(t.amount), 0);
             const sumMasuk = pTx.filter(t => t.type === 'Penerimaan' || t.type === 'Transfer Masuk').reduce((s,t) => s+Number(t.amount), 0);
             const sumKeluar = pTx.filter(t => t.type === 'Pengeluaran' || t.type === 'Transfer Keluar').reduce((s,t) => s+Number(t.amount), 0);
@@ -1191,7 +1193,7 @@
         };
 
         const renderTransfers = () => {
-            const sorted = [...state.data.transfers].sort((a,b) => new Date(b.date) - new Date(a.date));
+            const sorted = [...state.data.transfers].sort((a,b) => new Date(a.date) - new Date(b.date));
             document.getElementById('transfersList').innerHTML = sorted.map(tf => {
                 const pFrom = state.data.pockets.find(p => p.id === tf.from_pocket)?.name || 'Unknown';
                 const pTo = state.data.pockets.find(p => p.id === tf.to_pocket)?.name || 'Unknown';
@@ -1583,7 +1585,7 @@
                 if(sd && t.date < sd) return false;
                 if(ed && t.date > ed) return false;
                 return true;
-            }).sort((a,b) => new Date(b.date) - new Date(a.date));
+            }).sort((a,b) => new Date(a.date) - new Date(b.date));
         };
 
         const generateReportData = () => {
