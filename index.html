@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="id" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saku Cleo - Financial OS</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        primary: '#2563EB',
+                        brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563EB', 700: '#1d4ed8' }
+                    },
+                    boxShadow: { 'glass': '0 4px 30px rgba(0, 0, 0, 0.05)', 'glass-dark': '0 4px 30px rgba(0, 0, 0, 0.3)' }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Libraries -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Export Libraries: Excel & PDF -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root { --bg-body: #F8FAFC; --border-color: #E2E8F0; }
+        .dark { --bg-body: #0F172A; --border-color: #1E293B; }
+        body { background-color: var(--bg-body); color: #0f172a; transition: background-color 0.3s ease; }
+        .dark body { color: #f8fafc; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
+        .glass-panel { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .dark .glass-panel { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .hover-lift:hover { transform: translateY(-2px); }
+        .modal-backdrop { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .color-option { cursor: pointer; transition: transform 0.1s; }
+        .color-option:hover { transform: scale(1.1); }
+        .color-option.selected { border: 2px solid #0f172a; transform: scale(1.1); }
+        .dark .color-option.selected { border: 2px solid #f8fafc; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden antialiased text-sm">
+
+    <aside id="sidebar" class="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl flex flex-col transition-all duration-300 z-20 absolute md:relative h-full -translate-x-full md:translate-x-0">
+        <div class="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800">
+            <i class="ph-fill ph-wallet text-primary text-2xl mr-2"></i>
+            <span class="font-bold text-lg tracking-tight">Saku Cleo <span class="text-[10px] block font-normal text-slate-500 -mt-1">by ersandyf_</span></span>
+            <button id="closeSidebar" class="md:hidden ml-auto text-slate-500"><i class="ph ph-x text-xl"></i></button>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-1">
+            <a href="#" data-view="dashboard" class="nav-item flex items-center px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors bg-slate-100 dark:bg-slate-800 text-primary dark:text-primary font-medium">
+                <i class="ph ph-squares-four text-lg mr-3"></i> Dashboard
+            </a>
+            <a href="#" data-view="projects" class="nav-item flex items-center px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors">
+                <i class="ph ph-folder-open text-lg mr-3"></i> Project
+            </a>
+            <a href="#" data-view="pockets" class="nav-item flex items-center px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors">
+                <i class="ph ph-vault text-lg mr-3"></i> Kantong
+            </a>
+            <a href="#" data-view="transfers" class="nav-item flex items-center px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors">
+                <i class="ph ph-arrows-left-right text-lg mr-3"></i> Transfer
+            </a>
+            <a href="#" data-view="reports" class="nav-item flex items-center px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors">
+                <i class="ph ph-chart-line-up text-lg mr-3"></i> Laporan
+            </a>
+        </nav>
+        <div class="p-3 mt-auto border-t border-slate-200 dark:border-slate-800">
+            <a href="#" data-view="settings" class="nav-item flex items-center px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors">
+                <i class="ph ph-gear text-lg mr-3"></i> Settings
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0 bg-transparent h-full relative">
+        <header class="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md z-10 sticky top-0">
+            <div class="flex items-center gap-4">
+                <button id="openSidebar" class="md:hidden text-slate-500 hover:text-slate-900 dark:hover:text-white">
+                    <i class="ph ph-list text-2xl"></i>
+                </button>
+                <div class="relative hidden sm:block">
+                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="globalSearch" placeholder="Search (Ctrl+K)" class="pl-9 pr-4 py-1.5 w-64 rounded-full bg-slate-100 dark:bg-slate-800 border-none focus:ring-2 focus:ring-primary text-sm transition-shadow outline-none dark:text-white placeholder-slate-400">
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button onclick="openTransactionModal()" class="hidden sm:flex bg-primary hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-medium transition-colors items-center gap-2 shadow-sm text-xs">
+                    <i class="ph ph-plus font-bold"></i> Transaksi Cepat
+                </button>
+                <span id="dbStatusBadge" class="hidden sm:inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 cursor-pointer" onclick="navigate('settings')">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span> Mock DB
+                </span>
+                <button id="themeToggle" class="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    <i class="ph ph-moon text-xl" id="themeIcon"></i>
+                </button>
+                <div class="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-700">
+                    <div class="text-right hidden md:block">
+                        <p class="text-sm font-bold text-slate-900 dark:text-white leading-tight">Handeya Satiti</p>
+                        <p class="text-[10px] text-slate-500">Administrator</p>
+                    </div>
+                    <div class="h-9 w-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold shadow-md text-xs">
+                        HS
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div id="viewContainer" class="flex-1 overflow-y-auto p-4 md:p-8 no-scrollbar scroll-smooth">
+            
+            <!-- Dashboard View -->
+            <div id="view-dashboard" class="view-section fade-in">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Dashboard</h1>
+                        <p class="text-slate-500 dark:text-slate-400 mt-1">Ringkasan keuangan organisasi hari ini.</p>
+                    </div>
+                    <button onclick="openTransactionModal()" class="sm:hidden bg-primary text-white px-4 py-2 rounded-lg font-medium w-full sm:w-auto">
+                        + Transaksi Baru
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <!-- Cards populated via JS ... -->
+                    <div class="glass-panel rounded-2xl p-5 hover-lift shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div><p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Total Saldo Kantong</p><h3 class="text-2xl font-bold mt-1 text-slate-900 dark:text-white" id="dashTotalSaldo">Rp 0</h3></div>
+                            <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-primary"><i class="ph ph-vault text-xl"></i></div>
+                        </div>
+                    </div>
+                    <div class="glass-panel rounded-2xl p-5 hover-lift shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div><p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Project Aktif</p><h3 class="text-2xl font-bold mt-1 text-slate-900 dark:text-white" id="dashActiveProjects">0</h3></div>
+                            <div class="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400"><i class="ph ph-folder-open text-xl"></i></div>
+                        </div>
+                    </div>
+                    <div class="glass-panel rounded-2xl p-5 hover-lift shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div><p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Penerimaan (Bulan Ini)</p><h3 class="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400" id="dashPenerimaan">Rp 0</h3></div>
+                            <div class="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400"><i class="ph ph-trend-up text-xl"></i></div>
+                        </div>
+                    </div>
+                    <div class="glass-panel rounded-2xl p-5 hover-lift shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div><p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Pengeluaran (Bulan Ini)</p><h3 class="text-2xl font-bold mt-1 text-rose-600 dark:text-rose-400" id="dashPengeluaran">Rp 0</h3></div>
+                            <div class="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-lg text-rose-600 dark:text-rose-400"><i class="ph ph-trend-down text-xl"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="lg:col-span-2 glass-panel rounded-2xl p-5 shadow-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-semibold text-slate-900 dark:text-white">Cash Flow</h3>
+                            <select id="chartPeriod" class="text-sm bg-slate-100 dark:bg-slate-800 border-none rounded-lg py-1 px-2 outline-none">
+                                <option value="7">7 Hari</option><option value="30" selected>30 Hari</option><option value="365">12 Bulan</option>
+                            </select>
+                        </div>
+                        <div class="h-64 w-full"><canvas id="cashflowChart"></canvas></div>
+                    </div>
+                    <div class="glass-panel rounded-2xl p-5 shadow-sm flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-semibold text-slate-900 dark:text-white">Saldo per Kantong</h3>
+                            <button onclick="navigate('pockets')" class="text-xs text-primary hover:underline">Kelola</button>
+                        </div>
+                        <div class="flex-1 overflow-y-auto pr-2 space-y-3 no-scrollbar" id="dashPocketsList"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass-panel rounded-2xl p-5 shadow-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-semibold text-slate-900 dark:text-white">Project Aktif</h3>
+                            <button onclick="navigate('projects')" class="text-xs text-primary hover:underline">Semua</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                <thead>
+                                    <tr class="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                                        <th class="pb-2 font-medium">Nama Project</th>
+                                        <th class="pb-2 font-medium">Saldo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashProjectsList" class="divide-y divide-slate-100 dark:divide-slate-800/50"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="glass-panel rounded-2xl p-5 shadow-sm">
+                        <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Aktivitas Terbaru</h3>
+                        <div class="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 dark:before:via-slate-800 before:to-transparent" id="dashTimeline"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-projects" class="view-section hidden fade-in">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Project</h1>
+                        <p class="text-slate-500 dark:text-slate-400 mt-1">Satu Project = Satu Buku Kas.</p>
+                    </div>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button onclick="openTransactionModal()" class="bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 text-white px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center flex-1 sm:flex-none">
+                            <i class="ph ph-plus"></i> Transaksi
+                        </button>
+                        <button onclick="openNewProjectModal()" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center flex-1 sm:flex-none shadow-sm">
+                            <i class="ph ph-folder-plus font-bold mr-2"></i> Project Baru
+                        </button>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-2xl p-4 mb-6 shadow-sm flex flex-col md:flex-row gap-3">
+                    <div class="relative flex-1">
+                        <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="projectSearch" placeholder="Cari project..." class="w-full pl-9 pr-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none">
+                    </div>
+                    <select id="projectStatusFilter" class="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 outline-none">
+                        <option value="all">Semua Status</option>
+                        <option value="Berjalan">Berjalan</option>
+                        <option value="Selesai">Selesai</option>
+                        <option value="Ditunda">Ditunda</option>
+                        <option value="Dibatalkan">Dibatalkan</option>
+                    </select>
+                </div>
+                <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+            </div>
+
+            <div id="view-project-detail" class="view-section hidden fade-in">
+                <div class="mb-4 flex flex-col md:flex-row justify-between items-start gap-4">
+                    <div class="w-full">
+                        <button onclick="navigate('projects')" class="text-slate-500 hover:text-primary flex items-center gap-1 text-sm font-medium mb-4">
+                            <i class="ph ph-arrow-left"></i> Kembali
+                        </button>
+                        <div class="flex justify-between items-start w-full">
+                            <div>
+                                <div class="flex items-center gap-3 mb-1">
+                                    <div id="detailProjectColor" class="w-4 h-4 rounded-full"></div>
+                                    <h1 class="text-2xl font-bold text-slate-900 dark:text-white" id="detailProjectName">Nama Project</h1>
+                                    
+                                    <!-- Explicit Status UI -->
+                                    <div class="ml-2 flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700">
+                                        <span class="text-xs text-slate-500 hidden sm:inline">Status:</span>
+                                        <select id="detailProjectStatus" onchange="updateProjectStatus(this.value)" class="text-xs font-semibold outline-none bg-transparent text-slate-700 dark:text-slate-200 cursor-pointer">
+                                            <option value="Berjalan">Berjalan</option>
+                                            <option value="Selesai">Selesai</option>
+                                            <option value="Ditunda">Ditunda</option>
+                                            <option value="Dibatalkan">Dibatalkan</option>
+                                        </select>
+                                    </div>
+
+                                </div>
+                                <p class="text-slate-500 text-sm flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
+                                    <span><i class="ph ph-user mr-1"></i> <span id="detailProjectPIC">-</span></span>
+                                    <span><i class="ph ph-calendar-blank mr-1"></i> <span id="detailProjectDate">-</span></span>
+                                </p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="editCurrentProject()" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 hover:text-primary" title="Edit Project"><i class="ph ph-pencil-simple text-lg"></i></button>
+                                <button onclick="deleteCurrentProject()" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 hover:text-rose-500" title="Hapus Project"><i class="ph ph-trash text-lg"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mb-6 flex-wrap">
+                    <button onclick="openTransactionModal(state.activeProjectId, null)" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm text-sm">
+                        <i class="ph ph-plus"></i> Transaksi Baru
+                    </button>
+                    <button onclick="exportProjectReportPDF()" class="bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm text-sm">
+                        <i class="ph ph-file-pdf"></i> Ekspor Laporan (PDF)
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="glass-panel rounded-xl p-4 shadow-sm border-l-4 border-l-slate-400">
+                        <p class="text-xs text-slate-500 font-medium">Saldo Awal</p>
+                        <h4 class="text-lg font-bold text-slate-900 dark:text-white mt-1" id="detailSaldoAwal">Rp 0</h4>
+                    </div>
+                    <div class="glass-panel rounded-xl p-4 shadow-sm border-l-4 border-l-emerald-500">
+                        <p class="text-xs text-slate-500 font-medium">Penerimaan (+)</p>
+                        <h4 class="text-lg font-bold text-emerald-600 mt-1" id="detailPenerimaan">Rp 0</h4>
+                    </div>
+                    <div class="glass-panel rounded-xl p-4 shadow-sm border-l-4 border-l-rose-500">
+                        <p class="text-xs text-slate-500 font-medium">Pengeluaran (-)</p>
+                        <h4 class="text-lg font-bold text-rose-600 mt-1" id="detailPengeluaran">Rp 0</h4>
+                    </div>
+                    <div class="glass-panel rounded-xl p-4 shadow-sm border-l-4 border-l-primary bg-blue-50/50 dark:bg-blue-900/10">
+                        <p class="text-xs text-primary font-bold">SALDO AKHIR</p>
+                        <h4 class="text-xl font-bold text-primary mt-1" id="detailSaldoAkhir">Rp 0</h4>
+                    </div>
+                </div>
+
+                <div class="border-b border-slate-200 dark:border-slate-800 mb-4 flex gap-6">
+                    <button class="px-1 py-3 text-sm font-medium border-b-2 border-primary text-primary proj-tab-btn" data-target="tab-overview">Overview</button>
+                    <button class="px-1 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 proj-tab-btn" data-target="tab-transaksi">Daftar Transaksi</button>
+                </div>
+
+                <div id="tab-overview" class="proj-tab-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="glass-panel p-5 rounded-2xl shadow-sm">
+                            <h3 class="font-bold text-slate-900 dark:text-white mb-2">Deskripsi Project</h3>
+                            <p id="detailProjectDesc" class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed whitespace-pre-wrap"></p>
+                        </div>
+                        <div class="glass-panel p-5 rounded-2xl shadow-sm">
+                            <h3 class="font-bold text-slate-900 dark:text-white mb-4">Statistik Transaksi</h3>
+                            <div class="flex justify-between mb-2 text-sm"><span class="text-slate-500">Total Transaksi</span> <span class="font-bold" id="statTotalTx">0</span></div>
+                            <div class="flex justify-between mb-2 text-sm"><span class="text-slate-500">Total Masuk</span> <span class="font-bold text-emerald-500" id="statMasuk">0</span></div>
+                            <div class="flex justify-between mb-2 text-sm"><span class="text-slate-500">Total Keluar</span> <span class="font-bold text-rose-500" id="statKeluar">0</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-transaksi" class="proj-tab-content hidden glass-panel rounded-2xl overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left whitespace-nowrap">
+                            <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs uppercase tracking-wider">
+                                <tr>
+                                    <th class="px-4 py-3 font-medium">Tanggal</th>
+                                    <th class="px-4 py-3 font-medium">Keterangan</th>
+                                    <th class="px-4 py-3 font-medium">Kantong</th>
+                                    <th class="px-4 py-3 font-medium text-right">Masuk</th>
+                                    <th class="px-4 py-3 font-medium text-right">Keluar</th>
+                                    <th class="px-4 py-3 font-medium text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="projectTransactionsList" class="divide-y divide-slate-100 dark:divide-slate-800/50 text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-pockets" class="view-section hidden fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Kantong Organisasi</h1>
+                        <p class="text-slate-500 dark:text-slate-400 mt-1">Kelola sumber dana fisik dan rekening digital.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="openTransactionModal(null, null)" class="hidden sm:flex bg-slate-800 text-white px-3 py-2 rounded-lg font-medium items-center gap-2 text-sm"><i class="ph ph-plus"></i> Transaksi</button>
+                        <button onclick="openNewPocketModal()" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm text-sm">
+                            <i class="ph ph-vault"></i> Tambah Kantong
+                        </button>
+                    </div>
+                </div>
+                <div id="pocketsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+            </div>
+
+            <div id="view-pocket-detail" class="view-section hidden fade-in">
+                 <div class="mb-4">
+                    <button onclick="navigate('pockets')" class="text-slate-500 hover:text-primary flex items-center gap-1 text-sm font-medium mb-4">
+                        <i class="ph ph-arrow-left"></i> Kembali
+                    </button>
+                    <div class="flex flex-col md:flex-row justify-between items-start gap-4">
+                        <div class="flex items-center gap-4">
+                            <div id="pocDetailIcon" class="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center text-2xl text-white shadow-lg">
+                                <i class="ph ph-vault"></i>
+                            </div>
+                            <div>
+                                <h1 class="text-2xl font-bold text-slate-900 dark:text-white" id="pocDetailName">Nama Kantong</h1>
+                                <p class="text-slate-500">Total Saldo: <span class="font-bold text-slate-900 dark:text-white font-mono text-lg" id="pocDetailBalance">Rp 0</span></p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 flex-wrap">
+                            <button onclick="openTransactionModal(null, state.activePocketId)" class="bg-primary hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium text-sm flex items-center gap-2"><i class="ph ph-plus"></i> Transaksi</button>
+                            <button onclick="openModal('modalTransfer')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-medium text-sm flex items-center gap-2"><i class="ph ph-arrows-left-right"></i> Transfer</button>
+                            <button onclick="exportPocketReportPDF()" class="bg-slate-800 text-white px-3 py-2 rounded-lg font-medium text-sm flex items-center gap-2"><i class="ph ph-file-pdf"></i> Ekspor PDF</button>
+                            <button onclick="deleteCurrentPocket()" class="bg-rose-100 text-rose-600 px-3 py-2 rounded-lg font-medium text-sm" title="Hapus Kantong"><i class="ph ph-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <h3 class="font-bold text-slate-900 dark:text-white mb-4">Sebaran Saldo Berdasarkan Project</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="pocProjectAllocations"></div>
+                </div>
+            </div>
+
+            <div id="view-transfers" class="view-section hidden fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Transfer Saldo</h1>
+                        <p class="text-slate-500 dark:text-slate-400 mt-1">Mutasi antar Kantong (tidak mengubah cashflow project).</p>
+                    </div>
+                    <button onclick="openModal('modalTransfer')" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm">
+                        <i class="ph ph-arrows-left-right"></i> Transfer Baru
+                    </button>
+                </div>
+                <div class="glass-panel rounded-2xl shadow-sm overflow-hidden">
+                    <table class="w-full text-left whitespace-nowrap">
+                        <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
+                            <tr>
+                                <th class="px-4 py-3 font-medium">Tanggal</th>
+                                <th class="px-4 py-3 font-medium">Dari Kantong</th>
+                                <th class="px-4 py-3 font-medium">Ke Kantong</th>
+                                <th class="px-4 py-3 font-medium text-right">Nominal</th>
+                                <th class="px-4 py-3 font-medium">Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transfersList" class="divide-y divide-slate-100 dark:divide-slate-800/50 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-reports" class="view-section hidden fade-in">
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Laporan Keuangan</h1>
+                    <p class="text-slate-500 dark:text-slate-400 mt-1">Buat, filter, dan unduh laporan transaksi.</p>
+                </div>
+                <div class="glass-panel rounded-2xl p-6 shadow-sm">
+                    <form id="formReport" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Project</label>
+                            <select id="repProject" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none text-sm"></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Kantong</label>
+                            <select id="repPocket" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none text-sm"></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Dari Tanggal</label>
+                            <input type="date" id="repStartDate" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Sampai Tanggal</label>
+                            <input type="date" id="repEndDate" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none text-sm">
+                        </div>
+                    </form>
+                    <div class="flex gap-4 flex-wrap">
+                        <button onclick="generateReportData()" class="bg-primary hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 shadow-sm text-sm">
+                            <i class="ph ph-magnifying-glass"></i> Pratinjau
+                        </button>
+                        <button onclick="exportCustomReportPDF()" class="bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 shadow-sm text-sm">
+                            <i class="ph ph-file-pdf"></i> Ekspor PDF
+                        </button>
+                        <button onclick="exportCustomReportExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 shadow-sm text-sm">
+                            <i class="ph ph-file-xls"></i> Ekspor Excel
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-6 glass-panel rounded-2xl overflow-hidden shadow-sm hidden" id="reportPreviewContainer">
+                     <div class="p-4 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex justify-between font-bold">
+                         <span>Ringkasan Saldo Laporan:</span>
+                         <span id="repPreviewTotal" class="text-primary font-mono">Rp 0</span>
+                     </div>
+                     <div class="overflow-y-auto max-h-96">
+                         <table class="w-full text-left whitespace-nowrap text-sm">
+                            <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs sticky top-0">
+                                <tr>
+                                    <th class="px-4 py-2">Tgl</th>
+                                    <th class="px-4 py-2">Project</th>
+                                    <th class="px-4 py-2">Kantong</th>
+                                    <th class="px-4 py-2">Ket</th>
+                                    <th class="px-4 py-2 text-right">Masuk</th>
+                                    <th class="px-4 py-2 text-right">Keluar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="repPreviewList" class="divide-y divide-slate-100 dark:divide-slate-800/50"></tbody>
+                        </table>
+                     </div>
+                </div>
+            </div>
+
+            <div id="view-settings" class="view-section hidden fade-in">
+                <div class="mb-6"><h1 class="text-2xl font-bold text-slate-900 dark:text-white">Pengaturan Sistem</h1></div>
+                <div class="glass-panel rounded-2xl p-6 max-w-2xl shadow-sm">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-database text-primary"></i> Koneksi Database (Supabase)</h3>
+                    <p class="text-sm text-slate-500 mb-4">Aplikasi menggunakan Mock Database (In-Memory) agar bisa langsung digunakan tanpa setup. Masukkan kredensial Supabase Anda untuk mode realtime dan persisten.</p>
+                    <form id="formConfig" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Supabase URL</label>
+                            <input type="text" id="configUrl" placeholder="https://xyzcompany.supabase.co" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Supabase Anon Key</label>
+                            <input type="password" id="configKey" placeholder="eyJh..." class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                        <div class="pt-2 flex gap-3">
+                            <button type="submit" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">Simpan & Connect</button>
+                            <button type="button" id="btnResetConfig" class="bg-rose-100 text-rose-700 hover:bg-rose-200 px-4 py-2 rounded-lg font-medium transition-colors">Gunakan Mock DB</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- Modal Transaksi -->
+    <div id="modalTransaction" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4 opacity-0 transition-opacity duration-200">
+        <div class="glass-panel bg-white dark:bg-slate-900 w-full max-w-xl rounded-2xl shadow-xl transform scale-95 transition-transform duration-200 flex flex-col max-h-[90vh]">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                <h3 class="font-bold text-lg" id="modalTransactionTitle">Tambah Transaksi</h3>
+                <button type="button" onclick="closeModal('modalTransaction')" class="text-slate-400 hover:text-slate-600"><i class="ph ph-x text-xl"></i></button>
+            </div>
+            <div class="p-5 overflow-y-auto flex-1 no-scrollbar">
+                <form id="formTransaction" class="space-y-4">
+                    <input type="hidden" id="transId">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Project *</label>
+                            <select id="transProject" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary text-sm"></select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Kantong *</label>
+                            <select id="transPocket" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary text-sm"></select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Tanggal *</label>
+                            <input type="date" id="transDate" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Jenis Transaksi *</label>
+                            <select id="transType" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary text-sm">
+                                <option value="Penerimaan">Penerimaan (+)</option>
+                                <option value="Pengeluaran">Pengeluaran (-)</option>
+                                <option value="Saldo Awal">Saldo Awal</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Nominal (Rp) *</label>
+                        <input type="number" id="transAmount" min="1" step="any" required placeholder="0" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary font-mono text-lg font-bold">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div>
+                            <label class="block text-sm font-medium mb-1">Metode Pembayaran/Penerimaan *</label>
+                            <select id="transMethod" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary text-sm">
+                                <option value="Cash">Cash / Tunai</option>
+                                <option value="Transfer">Bank Transfer</option>
+                                <option value="QRIS">QRIS</option>
+                                <option value="E-Wallet">E-Wallet</option>
+                                <option value="Sponsor">Sponsor</option>
+                                <option value="Donasi">Donasi</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Dokumen Pendukung</label>
+                            <input type="file" id="transDocs" multiple accept="image/*,.pdf" class="w-full px-2 py-1.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-sm">
+                            <p class="text-[10px] text-slate-500 mt-1">Maks. 2MB. Bisa lebih dari 1 file.</p>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Keterangan *</label>
+                        <textarea id="transDesc" required rows="2" placeholder="Detail transaksi..." class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary text-sm"></textarea>
+                    </div>
+                    <div class="pt-4 flex justify-end gap-2 border-t border-slate-200 dark:border-slate-700">
+                        <button type="button" onclick="closeModal('modalTransaction')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium">Batal</button>
+                        <button type="submit" class="bg-primary hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium shadow-md">Simpan Transaksi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Project -->
+    <div id="modalProject" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4 opacity-0 transition-opacity duration-200">
+        <div class="glass-panel bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl shadow-xl transform scale-95 transition-transform duration-200">
+            <div class="p-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                <h3 class="font-bold text-lg" id="modalProjectTitle">Form Project</h3>
+                <button type="button" onclick="closeModal('modalProject')" class="text-slate-400 hover:text-slate-600"><i class="ph ph-x text-xl"></i></button>
+            </div>
+            <div class="p-5">
+                <form id="formProject" class="space-y-4">
+                    <input type="hidden" id="projId">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Nama Project *</label>
+                        <input type="text" id="projName" required placeholder="Event Tahunan 2026..." class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">PIC (Penanggung Jawab)</label>
+                            <input type="text" id="projPIC" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Pilih Warna Label</label>
+                            <div class="flex gap-1.5 mt-1 flex-wrap" id="projColorPicker">
+                                <div class="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 color-option selected" data-color="bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+                                <div class="w-6 h-6 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 color-option" data-color="bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+                                <div class="w-6 h-6 rounded-full bg-gradient-to-r from-rose-400 to-red-500 color-option" data-color="bg-gradient-to-r from-rose-400 to-red-500"></div>
+                                <div class="w-6 h-6 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 color-option" data-color="bg-gradient-to-r from-amber-400 to-orange-500"></div>
+                                <div class="w-6 h-6 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-500 color-option" data-color="bg-gradient-to-r from-fuchsia-500 to-purple-500"></div>
+                                <div class="w-6 h-6 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 color-option" data-color="bg-gradient-to-r from-cyan-400 to-blue-500"></div>
+                                <div class="w-6 h-6 rounded-full bg-slate-800 color-option" data-color="bg-slate-800"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Tanggal Mulai *</label>
+                            <input type="date" id="projDate" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Tanggal Selesai (Opsional)</label>
+                            <input type="date" id="projEndDate" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Deskripsi Singkat</label>
+                        <textarea id="projDesc" rows="2" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary"></textarea>
+                    </div>
+                    <div class="pt-2 flex justify-end gap-2">
+                        <button type="button" onclick="closeModal('modalProject')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium">Batal</button>
+                        <button type="submit" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">Simpan Project</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Pocket -->
+    <div id="modalPocket" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4 opacity-0 transition-opacity duration-200">
+        <div class="glass-panel bg-white dark:bg-slate-900 w-full max-w-sm rounded-2xl shadow-xl transform scale-95 transition-transform duration-200">
+            <div class="p-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                <h3 class="font-bold text-lg" id="modalPocketTitle">Tambah Kantong</h3>
+                <button type="button" onclick="closeModal('modalPocket')" class="text-slate-400 hover:text-slate-600"><i class="ph ph-x text-xl"></i></button>
+            </div>
+            <div class="p-5">
+                <form id="formPocket" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Nama Rekening/Kantong *</label>
+                        <input type="text" id="pocName" required placeholder="BCA / Kas Tunai..." class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                     <div>
+                        <label class="block text-sm font-medium mb-1">Tema Kartu</label>
+                        <div class="flex gap-2 mt-1 flex-wrap" id="pocColorPicker">
+                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 color-option selected" data-color="bg-gradient-to-br from-blue-500 to-indigo-600"></div>
+                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 color-option" data-color="bg-gradient-to-br from-emerald-500 to-teal-600"></div>
+                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 color-option" data-color="bg-gradient-to-br from-amber-500 to-orange-600"></div>
+                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-fuchsia-500 to-purple-600 color-option" data-color="bg-gradient-to-br from-fuchsia-500 to-purple-600"></div>
+                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 color-option" data-color="bg-gradient-to-br from-rose-500 to-red-600"></div>
+                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 color-option" data-color="bg-gradient-to-br from-cyan-500 to-blue-600"></div>
+                            <div class="w-8 h-8 rounded-xl bg-slate-800 color-option" data-color="bg-slate-800"></div>
+                        </div>
+                    </div>
+                    <div class="pt-2 flex justify-end gap-2">
+                        <button type="button" onclick="closeModal('modalPocket')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium">Batal</button>
+                        <button type="submit" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Transfer -->
+    <div id="modalTransfer" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4 opacity-0 transition-opacity duration-200">
+        <div class="glass-panel bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-xl transform scale-95 transition-transform duration-200">
+            <div class="p-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                <h3 class="font-bold text-lg">Transfer Saldo</h3>
+                <button type="button" onclick="closeModal('modalTransfer')" class="text-slate-400 hover:text-slate-600"><i class="ph ph-x text-xl"></i></button>
+            </div>
+            <div class="p-5">
+                <form id="formTransfer" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Tanggal</label>
+                        <input type="date" id="tfDate" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium mb-1">Dari Kantong</label>
+                            <select id="tfFrom" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary text-sm"></select>
+                        </div>
+                        <div class="pt-6"><i class="ph ph-arrow-right text-xl text-slate-400"></i></div>
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium mb-1">Ke Kantong</label>
+                            <select id="tfTo" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary text-sm"></select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Nominal (Rp) *</label>
+                        <input type="number" id="tfAmount" min="1" step="any" required placeholder="0" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary font-mono text-lg font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Keterangan</label>
+                        <input type="text" id="tfDesc" required placeholder="Pindah dana operasional..." class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary text-sm">
+                    </div>
+                    <div class="pt-2 flex justify-end gap-2">
+                        <button type="button" onclick="closeModal('modalTransfer')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium">Batal</button>
+                        <button type="submit" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">Proses Transfer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Viewer Dokumen -->
+    <div id="modalDocsViewer" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-[55] p-4 opacity-0 transition-opacity duration-200">
+        <div class="glass-panel bg-white dark:bg-slate-900 w-full max-w-2xl rounded-2xl shadow-xl transform scale-95 transition-transform duration-200 flex flex-col max-h-[90vh]">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                <h3 class="font-bold text-lg">Dokumen Pendukung</h3>
+                <button type="button" onclick="closeModal('modalDocsViewer')" class="text-slate-400 hover:text-slate-600"><i class="ph ph-x text-xl"></i></button>
+            </div>
+            <div class="p-5 overflow-y-auto flex-1 no-scrollbar space-y-4" id="docsContainer">
+                <!-- Diisi via JS -->
+            </div>
+            <div class="p-4 border-t border-slate-200 dark:border-slate-700 text-right">
+                <button onclick="closeModal('modalDocsViewer')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-medium">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Dialog -->
+    <div id="modalConfirm" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-[60] p-4 opacity-0 transition-opacity duration-200">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center transform scale-95 transition-transform duration-200">
+            <div class="w-16 h-16 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4 text-3xl"><i class="ph ph-warning-circle"></i></div>
+            <h3 class="font-bold text-lg mb-2" id="confirmTitle">Konfirmasi</h3>
+            <p class="text-slate-500 mb-6 text-sm" id="confirmMsg">Apakah Anda yakin?</p>
+            <div class="flex gap-3 justify-center">
+                <button onclick="closeConfirm()" class="px-5 py-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 font-medium">Batal</button>
+                <button id="btnConfirmAction" class="px-5 py-2 rounded-lg text-white bg-rose-600 hover:bg-rose-700 font-medium">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3 z-50">
+        <i class="ph-fill ph-check-circle text-green-400 text-xl" id="toastIcon"></i>
+        <span id="toastMsg" class="font-medium">Success!</span>
+    </div>
+
+    <script>
+        // --- UTILS & CORE ---
+        const formatCurrency = (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount || 0);
+        const formatDate = (dateString) => {
+            if(!dateString) return '-';
+            return new Date(dateString).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        };
+        const generateId = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+        
+        // Convert File to Base64 (Untuk Dokumen Pendukung)
+        const fileToBase64 = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve({ name: file.name, data: reader.result, type: file.type });
+            reader.onerror = error => reject(error);
+        });
+
+        let toastTimeout;
+        const showToast = (msg, type = 'success') => {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            document.getElementById('toastIcon').className = type === 'error' ? 'ph-fill ph-warning-circle text-rose-400 text-xl' : 'ph-fill ph-check-circle text-green-400 text-xl';
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        };
+
+        const openModal = (id) => {
+            const modal = document.getElementById(id);
+            modal.classList.remove('hidden'); modal.style.display = 'flex';
+            setTimeout(() => { modal.classList.remove('opacity-0'); modal.children[0].classList.remove('scale-95'); }, 10);
+        };
+        const closeModal = (id) => {
+            const modal = document.getElementById(id);
+            modal.classList.add('opacity-0'); modal.children[0].classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); modal.style.display = ''; }, 200);
+        };
+
+        let confirmActionCallback = null;
+        const confirmAction = (title, msg, callback) => {
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmMsg').innerText = msg;
+            confirmActionCallback = callback;
+            openModal('modalConfirm');
+        };
+        const closeConfirm = () => closeModal('modalConfirm');
+        document.getElementById('btnConfirmAction').addEventListener('click', () => { if(confirmActionCallback) confirmActionCallback(); closeConfirm(); });
+
+        // --- APP STATE ---
+        let state = {
+            currentView: 'dashboard', activeProjectId: null, activePocketId: null,
+            useMock: true, db: null,
+            data: { projects: [], pockets: [], transactions: [], transfers: [] }
+        };
+        let chartInstance = null;
+
+        // --- DATA LAYER ---
+        const DB = {
+            async loadAll() {
+                if(state.useMock) {
+                    const local = localStorage.getItem('saku_cleo_data');
+                    if(local) state.data = JSON.parse(local);
+                } else {
+                    try {
+                        const [pRes, pocRes, txRes, tfRes] = await Promise.all([
+                            state.db.from('projects').select('*'),
+                            state.db.from('pockets').select('*'),
+                            state.db.from('transactions').select('*'),
+                            state.db.from('transfers').select('*')
+                        ]);
+                        state.data.projects = pRes.data || []; state.data.pockets = pocRes.data || [];
+                        state.data.transactions = txRes.data || []; state.data.transfers = tfRes.data || [];
+                    } catch(e) { showToast('Gagal memuat dari Supabase', 'error'); }
+                }
+                this.calculateBalances();
+            },
+            saveMock() { if(state.useMock) localStorage.setItem('saku_cleo_data', JSON.stringify(state.data)); },
+            calculateBalances() {
+                const balances = {};
+                state.data.pockets.forEach(p => balances[p.id] = 0);
+                
+                state.data.transactions.forEach(tx => {
+                    if(balances[tx.pocket_id] === undefined) balances[tx.pocket_id] = 0;
+                    if(tx.type === 'Penerimaan' || tx.type === 'Saldo Awal') balances[tx.pocket_id] += Number(tx.amount);
+                    if(tx.type === 'Pengeluaran') balances[tx.pocket_id] -= Number(tx.amount);
+                });
+                
+                state.data.transfers.forEach(tf => {
+                    if(balances[tf.from_pocket] !== undefined) balances[tf.from_pocket] -= Number(tf.amount);
+                    if(balances[tf.to_pocket] !== undefined) balances[tf.to_pocket] += Number(tf.amount);
+                });
+
+                state.data.pockets = state.data.pockets.map(p => ({ ...p, balance: balances[p.id] || 0 }));
+            },
+            async insert(table, payload) {
+                if(state.useMock) {
+                    payload.id = generateId(); payload.created_at = new Date().toISOString();
+                    state.data[table].unshift(payload);
+                } else { await state.db.from(table).insert([payload]); await this.loadAll(); }
+                this.calculateBalances(); this.saveMock(); return payload;
+            },
+            async update(table, id, payload) {
+                if(state.useMock) {
+                    const idx = state.data[table].findIndex(x => x.id === id);
+                    if(idx > -1) state.data[table][idx] = { ...state.data[table][idx], ...payload, updated_at: new Date().toISOString() };
+                } else { await state.db.from(table).update(payload).eq('id', id); await this.loadAll(); }
+                this.calculateBalances(); this.saveMock();
+            },
+            async delete(table, id) {
+                if(state.useMock) { state.data[table] = state.data[table].filter(x => x.id !== id); }
+                else { await state.db.from(table).delete().eq('id', id); await this.loadAll(); }
+                this.calculateBalances(); this.saveMock();
+            }
+        };
+
+        // --- ROUTING ---
+        const navigate = async (viewId, param = null) => {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-primary', 'dark:text-primary');
+                if(el.dataset.view === viewId) el.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-primary', 'dark:text-primary');
+            });
+            state.currentView = viewId;
+            document.getElementById(`view-${viewId}`)?.classList.remove('hidden');
+            
+            if(viewId === 'dashboard') renderDashboard();
+            if(viewId === 'projects') renderProjects();
+            if(viewId === 'project-detail') { state.activeProjectId = param; await renderProjectDetail(); }
+            if(viewId === 'pockets') renderPockets();
+            if(viewId === 'pocket-detail') { state.activePocketId = param; renderPocketDetail(); }
+            if(viewId === 'transfers') renderTransfers();
+            if(viewId === 'reports') renderReportsForm();
+            
+            if(window.innerWidth < 768) document.getElementById('sidebar').classList.add('-translate-x-full');
+        };
+
+        // --- EXPORT PDF & EXCEL LOGIC ---
+        const exportToPDF = (data, filename, reportTitle) => {
+            if(!data || data.length === 0) return showToast('Tidak ada data untuk diekspor', 'error');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(14);
+            doc.text(reportTitle, 14, 15);
+            doc.setFontSize(10);
+            doc.text(`Dicetak pada: ${new Date().toLocaleDateString('id-ID')}`, 14, 22);
+
+            const rows = data.map(t => {
+                const pName = state.data.projects.find(p=>p.id===t.project_id)?.name || '-';
+                const pocName = state.data.pockets.find(p=>p.id===t.pocket_id)?.name || '-';
+                const val = t.type === 'Pengeluaran' ? -Number(t.amount) : Number(t.amount);
+                return [formatDate(t.date), pName, pocName, t.type, t.payment_method, t.description, formatCurrency(val)];
+            });
+
+            doc.autoTable({
+                startY: 28,
+                head: [['Tanggal', 'Project', 'Kantong', 'Jenis', 'Metode', 'Keterangan', 'Nominal']],
+                body: rows,
+                theme: 'grid',
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [37, 99, 235] }
+            });
+
+            doc.save(`${filename}.pdf`);
+            showToast('Laporan PDF diunduh!');
+        };
+
+        const exportToExcel = (data, filename) => {
+            if(!data || data.length === 0) return showToast('Tidak ada data untuk diekspor', 'error');
+            
+            const worksheetData = data.map(t => ({
+                'Tanggal': formatDate(t.date),
+                'Project': state.data.projects.find(p=>p.id===t.project_id)?.name || '-',
+                'Kantong': state.data.pockets.find(p=>p.id===t.pocket_id)?.name || '-',
+                'Jenis': t.type,
+                'Metode': t.payment_method,
+                'Keterangan': t.description,
+                'Nominal Masuk': t.type !== 'Pengeluaran' ? Number(t.amount) : 0,
+                'Nominal Keluar': t.type === 'Pengeluaran' ? Number(t.amount) : 0
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(worksheetData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Laporan_Keuangan");
+            XLSX.writeFile(wb, `${filename}.xlsx`);
+            showToast('Laporan Excel diunduh!');
+        };
+
+        // --- RENDERERS ---
+        const renderDashboard = () => {
+            const tx = state.data.transactions;
+            const totalSaldo = state.data.pockets.reduce((sum, p) => sum + Number(p.balance), 0);
+            const activeProj = state.data.projects.filter(p => p.status === 'Berjalan').length;
+            
+            const now = new Date();
+            const currMonthTx = tx.filter(t => new Date(t.date).getMonth() === now.getMonth() && new Date(t.date).getFullYear() === now.getFullYear());
+            const sumMasuk = currMonthTx.filter(t => t.type === 'Penerimaan').reduce((s, t) => s + Number(t.amount), 0);
+            const sumKeluar = currMonthTx.filter(t => t.type === 'Pengeluaran').reduce((s, t) => s + Number(t.amount), 0);
+
+            document.getElementById('dashTotalSaldo').innerText = formatCurrency(totalSaldo);
+            document.getElementById('dashActiveProjects').innerText = activeProj;
+            document.getElementById('dashPenerimaan').innerText = formatCurrency(sumMasuk);
+            document.getElementById('dashPengeluaran').innerText = formatCurrency(sumKeluar);
+
+            document.getElementById('dashPocketsList').innerHTML = state.data.pockets.map(p => `
+                <div class="flex justify-between items-center p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 cursor-pointer hover:bg-slate-50 transition-colors" onclick="navigate('pocket-detail', '${p.id}')">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg ${p.color || 'bg-blue-100 text-blue-600'} flex items-center justify-center text-white"><i class="ph-fill ph-vault"></i></div>
+                        <span class="font-medium">${p.name}</span>
+                    </div>
+                    <span class="font-bold">${formatCurrency(p.balance)}</span>
+                </div>
+            `).join('') || '<p class="text-sm text-slate-500">Belum ada kantong.</p>';
+
+            const berjalan = state.data.projects.filter(p => p.status === 'Berjalan').slice(0, 5);
+            document.getElementById('dashProjectsList').innerHTML = berjalan.map(p => {
+                const pBal = state.data.transactions.filter(t => t.project_id === p.id).reduce((acc, t) => acc + (t.type === 'Pengeluaran' ? -Number(t.amount) : Number(t.amount)), 0);
+                return `
+                <tr class="hover:bg-slate-50 cursor-pointer" onclick="navigate('project-detail', '${p.id}')">
+                    <td class="py-3 pr-4"><div class="font-medium flex items-center gap-2"><span class="w-2 h-2 rounded-full ${p.color || 'bg-primary'}"></span> ${p.name}</div></td>
+                    <td class="py-3 px-4 font-mono font-medium">${formatCurrency(pBal)}</td>
+                </tr>
+            `}).join('') || '<tr><td colspan="2" class="py-4 text-slate-500 text-center">Tidak ada project aktif.</td></tr>';
+
+            const recentTx = [...state.data.transactions].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
+            document.getElementById('dashTimeline').innerHTML = recentTx.map(t => {
+                const isMasuk = t.type !== 'Pengeluaran';
+                const pName = state.data.projects.find(p => p.id === t.project_id)?.name || 'Unknown';
+                return `
+                <div class="relative flex gap-4">
+                    <div class="absolute left-5 -translate-x-1/2 md:static md:translate-x-0 w-3 h-3 rounded-full mt-1.5 ${isMasuk ? 'bg-emerald-500' : 'bg-rose-500'} shadow-[0_0_0_4px_var(--bg-body)] z-10"></div>
+                    <div class="ml-9 md:ml-0 flex-1 glass-panel p-3 rounded-xl cursor-pointer hover:bg-slate-50" onclick="navigate('project-detail', '${t.project_id}')">
+                        <div class="flex justify-between items-start mb-1"><span class="font-medium text-sm truncate">${t.description}</span><span class="text-xs text-slate-500">${formatDate(t.date)}</span></div>
+                        <div class="flex justify-between items-end"><span class="text-xs text-slate-500"><i class="ph ph-folder"></i> ${pName}</span><span class="font-bold text-sm ${isMasuk ? 'text-emerald-600' : 'text-rose-600'}">${isMasuk ? '+' : '-'}${formatCurrency(t.amount)}</span></div>
+                    </div>
+                </div>
+            `}).join('') || '<p class="text-sm text-slate-500 ml-5 md:ml-0">Belum ada aktivitas.</p>';
+
+            if(!chartInstance) {
+                const ctx = document.getElementById('cashflowChart').getContext('2d');
+                chartInstance = new Chart(ctx, { type: 'line', data: { labels: ['Jan','Feb','Mar','Apr','Mei','Jun'], datasets: [
+                    { label: 'Penerimaan', data: [10,15,12,20,18,25], borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.4 },
+                    { label: 'Pengeluaran', data: [8,10,9,15,12,18], borderColor: '#f43f5e', tension: 0.4 }
+                ]}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }});
+            }
+        };
+
+        const renderProjects = () => {
+            const search = document.getElementById('projectSearch').value.toLowerCase();
+            const status = document.getElementById('projectStatusFilter').value;
+            const statusOrder = { 'Berjalan': 1, 'Ditunda': 2, 'Selesai': 3, 'Dibatalkan': 4 };
+            
+            let filtered = state.data.projects
+                .filter(p => p.name.toLowerCase().includes(search) && (status === 'all' || p.status === status))
+                .sort((a, b) => statusOrder[a.status] - statusOrder[b.status]); // Sort by status priority
+
+            document.getElementById('projectsGrid').innerHTML = filtered.map(p => {
+                const pBal = state.data.transactions.filter(t => t.project_id === p.id).reduce((s,t) => s + (t.type === 'Pengeluaran' ? -Number(t.amount) : Number(t.amount)), 0);
+                const sColors = { 'Berjalan':'bg-blue-100 text-blue-700', 'Selesai':'bg-emerald-100 text-emerald-700', 'Ditunda':'bg-amber-100 text-amber-700', 'Dibatalkan':'bg-rose-100 text-rose-700' };
+                return `
+                <div class="glass-panel p-5 rounded-2xl hover-lift cursor-pointer shadow-sm relative overflow-hidden" onclick="navigate('project-detail', '${p.id}')">
+                    <div class="absolute top-0 left-0 w-full h-1.5 ${p.color || 'bg-primary'}"></div>
+                    <div class="flex justify-between items-start mb-3 mt-1">
+                        <span class="px-2.5 py-1 text-[10px] font-bold uppercase rounded-full ${sColors[p.status]}">${p.status}</span>
+                        <span class="text-xs text-slate-400 font-medium">${formatDate(p.start_date)}</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1 truncate">${p.name}</h3>
+                    <p class="text-sm text-slate-500 mb-4 line-clamp-2">${p.description || 'Tidak ada deskripsi.'}</p>
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800/50 flex justify-between items-end">
+                        <div><p class="text-[10px] uppercase text-slate-400 font-bold mb-0.5">Saldo Project</p><p class="font-bold text-primary font-mono">${formatCurrency(pBal)}</p></div>
+                        <div class="w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400"><i class="ph ph-caret-right"></i></div>
+                    </div>
+                </div>
+            `}).join('') || '<div class="col-span-full text-center py-10 text-slate-500">Project tidak ditemukan.</div>';
+        };
+
+        const renderProjectDetail = async () => {
+            const p = state.data.projects.find(x => x.id === state.activeProjectId);
+            if(!p) return navigate('projects');
+
+            document.getElementById('detailProjectColor').className = `w-4 h-4 rounded-full shadow-sm ${p.color || 'bg-primary'}`;
+            document.getElementById('detailProjectName').innerText = p.name;
+            document.getElementById('detailProjectPIC').innerText = p.pic || 'Tidak ada PIC';
+            document.getElementById('detailProjectDate').innerText = `${formatDate(p.start_date)} ${p.end_date ? ' - '+formatDate(p.end_date) : '(Berjalan)'}`;
+            document.getElementById('detailProjectStatus').value = p.status;
+            
+            const pTx = state.data.transactions.filter(t => t.project_id === p.id).sort((a,b) => new Date(b.date) - new Date(a.date));
+            const sumAwal = pTx.filter(t => t.type === 'Saldo Awal').reduce((s,t) => s+Number(t.amount), 0);
+            const sumMasuk = pTx.filter(t => t.type === 'Penerimaan').reduce((s,t) => s+Number(t.amount), 0);
+            const sumKeluar = pTx.filter(t => t.type === 'Pengeluaran').reduce((s,t) => s+Number(t.amount), 0);
+
+            document.getElementById('detailSaldoAwal').innerText = formatCurrency(sumAwal);
+            document.getElementById('detailPenerimaan').innerText = formatCurrency(sumMasuk);
+            document.getElementById('detailPengeluaran').innerText = formatCurrency(sumKeluar);
+            document.getElementById('detailSaldoAkhir').innerText = formatCurrency(sumAwal + sumMasuk - sumKeluar);
+
+            // Tab Overview
+            document.getElementById('detailProjectDesc').innerText = p.description || 'Tidak ada deskripsi rinci untuk project ini.';
+            document.getElementById('statTotalTx').innerText = pTx.length;
+            document.getElementById('statMasuk').innerText = formatCurrency(sumMasuk+sumAwal);
+            document.getElementById('statKeluar').innerText = formatCurrency(sumKeluar);
+
+            // Tab Transaksi
+            document.getElementById('projectTransactionsList').innerHTML = pTx.map(t => {
+                const isMasuk = t.type !== 'Pengeluaran';
+                const poc = state.data.pockets.find(k => k.id === t.pocket_id);
+                const hasDocs = t.attachments && t.attachments.length > 0;
+                
+                return `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-4 py-3 whitespace-nowrap">${formatDate(t.date)}</td>
+                    <td class="px-4 py-3 min-w-[200px]">
+                        <div class="font-medium">${t.description} 
+                            ${hasDocs ? `<button onclick="viewDocs('${t.id}')" class="text-primary ml-1 hover:text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase" title="Lihat Dokumen"><i class="ph ph-paperclip"></i> Dokumen</button>` : ''}
+                        </div>
+                        <div class="text-[10px] text-slate-500 flex gap-2 mt-1 uppercase font-bold">
+                            <span class="px-1.5 bg-slate-100 rounded">${t.type}</span>
+                            <span>${t.payment_method}</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3"><span class="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-blue-50 text-blue-700"><i class="ph-fill ph-vault"></i> ${poc ? poc.name : '-'}</span></td>
+                    <td class="px-4 py-3 text-right font-mono font-medium text-emerald-600">${isMasuk ? formatCurrency(t.amount) : '-'}</td>
+                    <td class="px-4 py-3 text-right font-mono font-medium text-rose-600">${!isMasuk ? formatCurrency(t.amount) : '-'}</td>
+                    <td class="px-4 py-3 text-center">
+                        <button onclick="editTransaction('${t.id}')" class="p-1.5 text-slate-400 hover:text-primary"><i class="ph ph-pencil-simple"></i></button>
+                        <button onclick="deleteTransaction('${t.id}')" class="p-1.5 text-slate-400 hover:text-rose-500"><i class="ph ph-trash"></i></button>
+                    </td>
+                </tr>
+            `}).join('') || '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">Belum ada transaksi di project ini.</td></tr>';
+        };
+
+        const renderPockets = () => {
+            document.getElementById('pocketsGrid').innerHTML = state.data.pockets.map(p => {
+                const count = state.data.transactions.filter(t => t.pocket_id === p.id).length;
+                return `
+                <div class="glass-panel p-5 rounded-2xl shadow-sm cursor-pointer hover-lift relative overflow-hidden text-white ${p.color || 'bg-slate-800'}" onclick="navigate('pocket-detail', '${p.id}')">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl"><i class="ph ph-vault"></i></div>
+                        <div><h3 class="font-bold text-lg leading-tight shadow-sm">${p.name}</h3><p class="text-xs text-white/70">${count} Transaksi</p></div>
+                    </div>
+                    <p class="text-sm text-white/80 mb-0.5">Saldo Tersedia</p>
+                    <p class="text-2xl font-bold font-mono tracking-tight drop-shadow-md">${formatCurrency(p.balance)}</p>
+                </div>
+            `}).join('');
+        };
+
+        const renderPocketDetail = () => {
+            const p = state.data.pockets.find(x => x.id === state.activePocketId);
+            if(!p) return navigate('pockets');
+            
+            document.getElementById('pocDetailIcon').className = `w-12 h-12 rounded-2xl flex items-center justify-center text-2xl text-white shadow-lg ${p.color || 'bg-slate-800'}`;
+            document.getElementById('pocDetailName').innerText = p.name;
+            document.getElementById('pocDetailBalance').innerText = formatCurrency(p.balance);
+
+            const pTx = state.data.transactions.filter(t => t.pocket_id === p.id);
+            const projs = {};
+            pTx.forEach(t => {
+                if(!projs[t.project_id]) projs[t.project_id] = 0;
+                projs[t.project_id] += t.type === 'Pengeluaran' ? -Number(t.amount) : Number(t.amount);
+            });
+
+            document.getElementById('pocProjectAllocations').innerHTML = Object.keys(projs).map(projId => {
+                const pj = state.data.projects.find(x => x.id === projId);
+                if(!pj) return '';
+                return `
+                <div class="glass-panel p-4 rounded-xl border border-slate-100 flex justify-between items-center cursor-pointer hover:bg-slate-50" onclick="navigate('project-detail', '${pj.id}')">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full ${pj.color || 'bg-primary'}"></span>
+                        <span class="font-medium text-slate-700 dark:text-slate-200">${pj.name}</span>
+                    </div>
+                    <span class="font-mono font-bold text-slate-900 dark:text-white">${formatCurrency(projs[projId])}</span>
+                </div>
+            `}).join('') || '<p class="col-span-full text-slate-500 text-sm">Belum ada alokasi project pada kantong ini.</p>';
+        };
+
+        const renderTransfers = () => {
+            const sorted = [...state.data.transfers].sort((a,b) => new Date(b.date) - new Date(a.date));
+            document.getElementById('transfersList').innerHTML = sorted.map(tf => {
+                const pFrom = state.data.pockets.find(p => p.id === tf.from_pocket)?.name || 'Unknown';
+                const pTo = state.data.pockets.find(p => p.id === tf.to_pocket)?.name || 'Unknown';
+                return `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-4 py-3">${formatDate(tf.date)}</td>
+                    <td class="px-4 py-3 font-medium text-rose-600 flex items-center gap-1"><i class="ph ph-arrow-up-right"></i> ${pFrom}</td>
+                    <td class="px-4 py-3 font-medium text-emerald-600"><div class="flex items-center gap-1"><i class="ph ph-arrow-down-right"></i> ${pTo}</div></td>
+                    <td class="px-4 py-3 text-right font-mono font-bold">${formatCurrency(tf.amount)}</td>
+                    <td class="px-4 py-3 text-slate-500">${tf.description}</td>
+                </tr>
+            `}).join('') || '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">Belum ada riwayat transfer.</td></tr>';
+        };
+
+        // --- FORMS & CRUD ACTIONS ---
+        
+        const setupColorPicker = (containerId) => {
+            const container = document.getElementById(containerId);
+            container.addEventListener('click', (e) => {
+                if(e.target.classList.contains('color-option')) {
+                    container.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                }
+            });
+        };
+        setupColorPicker('projColorPicker'); setupColorPicker('pocColorPicker');
+        const getSelectedColor = (containerId) => document.getElementById(containerId).querySelector('.selected')?.dataset.color || '';
+
+        // Project CRUD
+        const openNewProjectModal = () => {
+            document.getElementById('formProject').reset();
+            document.getElementById('projId').value = '';
+            document.getElementById('modalProjectTitle').innerText = 'Project Baru';
+            const cp = document.getElementById('projColorPicker');
+            cp.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+            cp.children[0].classList.add('selected');
+            openModal('modalProject');
+        };
+
+        document.getElementById('formProject').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('projId').value;
+            const payload = {
+                name: document.getElementById('projName').value,
+                pic: document.getElementById('projPIC').value,
+                start_date: document.getElementById('projDate').value,
+                end_date: document.getElementById('projEndDate').value || null,
+                description: document.getElementById('projDesc').value,
+                color: getSelectedColor('projColorPicker'),
+                status: id ? document.getElementById('detailProjectStatus')?.value || 'Berjalan' : 'Berjalan'
+            };
+            try {
+                if(id) await DB.update('projects', id, payload);
+                else { const res = await DB.insert('projects', payload); state.activeProjectId = res.id; }
+                closeModal('modalProject'); showToast('Project disimpan!');
+                if(state.currentView === 'projects') renderProjects();
+                else if (state.currentView === 'project-detail') renderProjectDetail();
+            } catch (err) { showToast(err.message, 'error'); }
+        });
+
+        const editCurrentProject = () => {
+            const p = state.data.projects.find(x => x.id === state.activeProjectId);
+            if(!p) return;
+            document.getElementById('projId').value = p.id;
+            document.getElementById('projName').value = p.name;
+            document.getElementById('projPIC').value = p.pic;
+            document.getElementById('projDate').value = p.start_date;
+            document.getElementById('projEndDate').value = p.end_date || '';
+            document.getElementById('projDesc').value = p.description;
+            
+            const cp = document.getElementById('projColorPicker');
+            cp.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+            const colorEl = cp.querySelector(`[data-color="${p.color}"]`);
+            if(colorEl) colorEl.classList.add('selected'); else cp.children[0].classList.add('selected');
+            
+            document.getElementById('modalProjectTitle').innerText = 'Edit Project';
+            openModal('modalProject');
+        };
+
+        const deleteCurrentProject = () => {
+            confirmAction("Hapus Project", "Project dan semua transaksinya akan dihapus permanen. Lanjutkan?", async () => {
+                const pTx = state.data.transactions.filter(t => t.project_id === state.activeProjectId);
+                for(let t of pTx) await DB.delete('transactions', t.id);
+                await DB.delete('projects', state.activeProjectId);
+                showToast("Project dihapus"); navigate('projects');
+            });
+        };
+        
+        const updateProjectStatus = async (status) => {
+            await DB.update('projects', state.activeProjectId, { status });
+            showToast("Status diperbarui");
+        };
+
+        // Pocket CRUD
+        const openNewPocketModal = () => {
+            document.getElementById('formPocket').reset();
+            const cp = document.getElementById('pocColorPicker');
+            cp.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+            cp.children[0].classList.add('selected');
+            openModal('modalPocket');
+        };
+
+        document.getElementById('formPocket').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                await DB.insert('pockets', { name: document.getElementById('pocName').value, color: getSelectedColor('pocColorPicker'), balance: 0 });
+                closeModal('modalPocket'); showToast('Kantong dibuat!');
+                if(state.currentView === 'pockets') renderPockets();
+            } catch (err) { showToast(err.message, 'error'); }
+        });
+
+        const deleteCurrentPocket = () => {
+            const inUse = state.data.transactions.some(t => t.pocket_id === state.activePocketId) || state.data.transfers.some(t => t.from_pocket === state.activePocketId || t.to_pocket === state.activePocketId);
+            if(inUse) return showToast("Gagal: Kantong ini masih memiliki riwayat transaksi/transfer.", "error");
+            
+            confirmAction("Hapus Kantong", "Kantong akan dihapus permanen. Lanjutkan?", async () => {
+                await DB.delete('pockets', state.activePocketId);
+                showToast("Kantong dihapus"); navigate('pockets');
+            });
+        };
+
+        // Transaction CRUD
+        const openTransactionModal = (prefillProjId = null, prefillPocId = null, editId = null) => {
+            if(state.data.projects.length === 0) return showToast("Buat project dulu!", 'error');
+            if(state.data.pockets.length === 0) return showToast("Buat kantong dulu!", 'error');
+            
+            const projSel = document.getElementById('transProject');
+            const pocSel = document.getElementById('transPocket');
+
+            projSel.innerHTML = state.data.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            pocSel.innerHTML = state.data.pockets.map(p => `<option value="${p.id}">${p.name} (${formatCurrency(p.balance)})</option>`).join('');
+            
+            if(editId) {
+                const t = state.data.transactions.find(x => x.id === editId);
+                document.getElementById('modalTransactionTitle').innerText = 'Edit Transaksi';
+                document.getElementById('transId').value = t.id;
+                projSel.value = t.project_id; pocSel.value = t.pocket_id;
+                document.getElementById('transDate').value = t.date;
+                document.getElementById('transType').value = t.type;
+                document.getElementById('transAmount').value = t.amount;
+                document.getElementById('transMethod').value = t.payment_method;
+                document.getElementById('transDesc').value = t.description;
+            } else {
+                document.getElementById('formTransaction').reset();
+                document.getElementById('modalTransactionTitle').innerText = 'Tambah Transaksi';
+                document.getElementById('transId').value = '';
+                document.getElementById('transDate').valueAsDate = new Date();
+                
+                // Pastikan yang di-select adalah yang aktif saat ini
+                if(prefillProjId) projSel.value = prefillProjId;
+                if(prefillPocId) pocSel.value = prefillPocId;
+            }
+            openModal('modalTransaction');
+        };
+
+        const editTransaction = (id) => openTransactionModal(null, null, id);
+        const deleteTransaction = (id) => {
+            confirmAction("Hapus Transaksi", "Transaksi dihapus dan saldo kantong disesuaikan ulang. Lanjutkan?", async () => {
+                await DB.delete('transactions', id); showToast("Transaksi dihapus");
+                if(state.currentView === 'project-detail') renderProjectDetail();
+                else if(state.currentView === 'pocket-detail') renderPocketDetail();
+            });
+        };
+
+        document.getElementById('formTransaction').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const type = document.getElementById('transType').value;
+            const amount = parseFloat(document.getElementById('transAmount').value);
+            const pocketId = document.getElementById('transPocket').value;
+            const txId = document.getElementById('transId').value;
+
+            // Validasi Saldo Pengeluaran
+            if(type === 'Pengeluaran') {
+                const pocket = state.data.pockets.find(p => p.id === pocketId);
+                let currentBal = Number(pocket.balance);
+                if(txId) {
+                    const oldTx = state.data.transactions.find(x => x.id === txId);
+                    if(oldTx && oldTx.type === 'Pengeluaran') currentBal += Number(oldTx.amount);
+                    if(oldTx && (oldTx.type === 'Penerimaan' || oldTx.type === 'Saldo Awal')) currentBal -= Number(oldTx.amount);
+                }
+                if(pocket && currentBal < amount) return showToast(`Saldo Kantong tidak cukup! (Sisa: ${formatCurrency(currentBal)})`, 'error');
+            }
+
+            const files = document.getElementById('transDocs').files;
+            const attachments = [];
+            for(let f of files) attachments.push(await fileToBase64(f));
+
+            const payload = {
+                project_id: document.getElementById('transProject').value,
+                pocket_id: pocketId, date: document.getElementById('transDate').value,
+                type: type, amount: amount, payment_method: document.getElementById('transMethod').value,
+                description: document.getElementById('transDesc').value,
+                ...(attachments.length > 0 && { attachments: attachments })
+            };
+
+            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
+            try {
+                if(txId) await DB.update('transactions', txId, payload); else await DB.insert('transactions', payload);
+                closeModal('modalTransaction'); showToast('Transaksi berhasil disimpan!');
+                if(state.currentView === 'project-detail') renderProjectDetail();
+                else if(state.currentView === 'pocket-detail') renderPocketDetail();
+                else if(state.currentView === 'dashboard') renderDashboard();
+            } catch (err) { showToast(err.message, 'error'); } 
+            finally { btn.disabled = false; }
+        });
+
+        // Dokumen Viewer Modal
+        const viewDocs = (txId) => {
+            const tx = state.data.transactions.find(t => t.id === txId);
+            if(!tx || !tx.attachments || tx.attachments.length === 0) return;
+            
+            const container = document.getElementById('docsContainer');
+            container.innerHTML = tx.attachments.map(att => {
+                if(att.type.startsWith('image/')) return `<div class="mb-4"><p class="text-xs text-slate-500 mb-1">${att.name}</p><img src="${att.data}" class="w-full rounded-xl border border-slate-200 shadow-sm"></div>`;
+                if(att.type === 'application/pdf') return `<div class="mb-4"><p class="text-xs text-slate-500 mb-1">${att.name}</p><iframe src="${att.data}" class="w-full h-96 rounded-xl border border-slate-200 shadow-sm"></iframe></div>`;
+                return `<div class="p-4 bg-slate-50 rounded-lg"><p>File: ${att.name} (Tipe tidak didukung untuk preview)</p></div>`;
+            }).join('');
+            openModal('modalDocsViewer');
+        };
+
+        // Transfer Logic
+        document.getElementById('modalTransfer').addEventListener('transitionstart', (e) => {
+            if(!e.target.classList.contains('hidden')) {
+                const pList = state.data.pockets.map(p => `<option value="${p.id}">${p.name} (${formatCurrency(p.balance)})</option>`).join('');
+                document.getElementById('tfFrom').innerHTML = pList; document.getElementById('tfTo').innerHTML = pList;
+                document.getElementById('tfDate').valueAsDate = new Date();
+            }
+        });
+        document.getElementById('formTransfer').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const from = document.getElementById('tfFrom').value, to = document.getElementById('tfTo').value, amount = parseFloat(document.getElementById('tfAmount').value);
+            if(from === to) return showToast('Kantong asal dan tujuan tidak boleh sama!', 'error');
+            const pFrom = state.data.pockets.find(p => p.id === from);
+            if(pFrom && Number(pFrom.balance) < amount) return showToast('Saldo asal tidak cukup!', 'error');
+
+            try {
+                await DB.insert('transfers', { from_pocket: from, to_pocket: to, amount: amount, date: document.getElementById('tfDate').value, description: document.getElementById('tfDesc').value });
+                closeModal('modalTransfer'); e.target.reset(); showToast('Transfer sukses!');
+                if(state.currentView === 'transfers') renderTransfers();
+                if(state.currentView === 'pocket-detail') renderPocketDetail();
+            } catch (err) { showToast(err.message, 'error'); }
+        });
+
+        // Tabs
+        document.querySelectorAll('.proj-tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.proj-tab-btn').forEach(b => { b.classList.remove('border-primary', 'text-primary'); b.classList.add('border-transparent', 'text-slate-500'); });
+                e.target.classList.remove('border-transparent', 'text-slate-500'); e.target.classList.add('border-primary', 'text-primary');
+                document.querySelectorAll('.proj-tab-content').forEach(c => c.classList.add('hidden'));
+                document.getElementById(e.target.dataset.target).classList.remove('hidden');
+            });
+        });
+
+        // --- REPORTING SYSTEM ---
+        const renderReportsForm = () => {
+            document.getElementById('repProject').innerHTML = '<option value="all">Semua Project</option>' + state.data.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            document.getElementById('repPocket').innerHTML = '<option value="all">Semua Kantong</option>' + state.data.pockets.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        };
+
+        const getFilteredReportData = () => {
+            const pId = document.getElementById('repProject').value;
+            const pocId = document.getElementById('repPocket').value;
+            const sd = document.getElementById('repStartDate').value;
+            const ed = document.getElementById('repEndDate').value;
+            
+            return state.data.transactions.filter(t => {
+                if(pId !== 'all' && t.project_id !== pId) return false;
+                if(pocId !== 'all' && t.pocket_id !== pocId) return false;
+                if(sd && t.date < sd) return false;
+                if(ed && t.date > ed) return false;
+                return true;
+            }).sort((a,b) => new Date(b.date) - new Date(a.date));
+        };
+
+        const generateReportData = () => {
+            const data = getFilteredReportData();
+            let sumIn = 0, sumOut = 0;
+            document.getElementById('repPreviewList').innerHTML = data.map(t => {
+                const isMasuk = t.type !== 'Pengeluaran';
+                if(isMasuk) sumIn += Number(t.amount); else sumOut += Number(t.amount);
+                return `
+                <tr>
+                    <td class="px-4 py-2">${formatDate(t.date)}</td>
+                    <td class="px-4 py-2 truncate max-w-[150px]">${state.data.projects.find(p=>p.id===t.project_id)?.name || '-'}</td>
+                    <td class="px-4 py-2">${state.data.pockets.find(p=>p.id===t.pocket_id)?.name || '-'}</td>
+                    <td class="px-4 py-2 truncate max-w-[150px]">${t.description}</td>
+                    <td class="px-4 py-2 text-right text-emerald-600">${isMasuk ? formatCurrency(t.amount) : '-'}</td>
+                    <td class="px-4 py-2 text-right text-rose-600">${!isMasuk ? formatCurrency(t.amount) : '-'}</td>
+                </tr>
+            `}).join('') || '<tr><td colspan="6" class="px-4 py-4 text-center">Tidak ada data.</td></tr>';
+            
+            document.getElementById('repPreviewTotal').innerText = formatCurrency(sumIn - sumOut);
+            document.getElementById('reportPreviewContainer').classList.remove('hidden');
+        };
+
+        const exportCustomReportPDF = () => exportToPDF(getFilteredReportData(), `Laporan_Keuangan_${new Date().getTime()}`, 'Laporan Transaksi Keuangan');
+        const exportCustomReportExcel = () => exportToExcel(getFilteredReportData(), `Laporan_Keuangan_${new Date().getTime()}`);
+        
+        const exportProjectReportPDF = () => {
+            const p = state.data.projects.find(x => x.id === state.activeProjectId);
+            const data = state.data.transactions.filter(t => t.project_id === state.activeProjectId).sort((a,b) => new Date(a.date) - new Date(b.date));
+            exportToPDF(data, `Laporan_Project_${p.name.replace(/\s/g, '_')}`, `Laporan Buku Kas Project: ${p.name}`);
+        };
+        
+        const exportPocketReportPDF = () => {
+            const p = state.data.pockets.find(x => x.id === state.activePocketId);
+            const data = state.data.transactions.filter(t => t.pocket_id === state.activePocketId).sort((a,b) => new Date(a.date) - new Date(b.date));
+            exportToPDF(data, `Mutasi_Kantong_${p.name.replace(/\s/g, '_')}`, `Laporan Mutasi Kantong: ${p.name}`);
+        };
+
+        // UI Listeners
+        document.getElementById('projectSearch').addEventListener('input', renderProjects);
+        document.getElementById('projectStatusFilter').addEventListener('change', renderProjects);
+        document.getElementById('openSidebar').addEventListener('click', () => document.getElementById('sidebar').classList.remove('-translate-x-full'));
+        document.getElementById('closeSidebar').addEventListener('click', () => document.getElementById('sidebar').classList.add('-translate-x-full'));
+        document.querySelectorAll('.nav-item').forEach(el => el.addEventListener('click', (e) => { e.preventDefault(); navigate(e.currentTarget.dataset.view); }));
+        document.addEventListener('keydown', (e) => { if((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('globalSearch').focus(); }});
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const html = document.documentElement;
+            if(html.classList.contains('dark')) { html.classList.remove('dark'); document.getElementById('themeIcon').className = 'ph ph-moon text-xl'; localStorage.setItem('theme', 'light'); }
+            else { html.classList.add('dark'); document.getElementById('themeIcon').className = 'ph ph-sun text-xl'; localStorage.setItem('theme', 'dark'); }
+        });
+
+        document.getElementById('formConfig').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const url = document.getElementById('configUrl').value, key = document.getElementById('configKey').value;
+            if(url && key) { localStorage.setItem('sb_url', url); localStorage.setItem('sb_key', key); showToast('Memuat ulang sistem...'); setTimeout(() => window.location.reload(), 1000); }
+        });
+        document.getElementById('btnResetConfig').addEventListener('click', () => { localStorage.removeItem('sb_url'); localStorage.removeItem('sb_key'); showToast('Kembali ke Mock DB...'); setTimeout(() => window.location.reload(), 1000); });
+
+        const initApp = async () => {
+            if(localStorage.getItem('theme') === 'dark') { document.documentElement.classList.add('dark'); document.getElementById('themeIcon').className = 'ph ph-sun text-xl'; }
+            const sbUrl = localStorage.getItem('sb_url'), sbKey = localStorage.getItem('sb_key');
+            if(sbUrl && sbKey) {
+                state.useMock = false; state.db = supabase.createClient(sbUrl, sbKey);
+                const badge = document.getElementById('dbStatusBadge');
+                badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span> Supabase Connected';
+                badge.className = "hidden sm:inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 cursor-pointer";
+                document.getElementById('configUrl').value = sbUrl; document.getElementById('configKey').value = sbKey;
+            } else document.getElementById('dbStatusBadge').classList.remove('hidden');
+            await DB.loadAll(); navigate('dashboard');
+        };
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
