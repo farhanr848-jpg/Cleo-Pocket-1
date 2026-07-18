@@ -1537,6 +1537,9 @@
                     for (const t of oldTx) {
                         await DB.delete('transactions', t.id);
                     }
+                                    } else {
+                    savedTf = await DB.insert('transfers', tfPayload);
+                }
                 
                 // Buat 2 transaksi mapping baru agar masuk ke Project
                 await DB.insert('transactions', {
