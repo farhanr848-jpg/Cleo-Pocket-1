@@ -736,7 +736,27 @@
         <span id="toastMsg" class="font-medium">Success!</span>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        const SUPABASE_URL = "https://wduukpwuhmvzzccdaopr.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkdXVrcHd1aG12enpjY2Rhb3ByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzNjQwOTksImV4cCI6MjA5OTk0MDA5OX0.pDrPLzLDbkmvUBbwfv3KxNieHeFDQpoJJJaLre5XQrM";
+        
+        const supabase = window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+        async function testConnection() {
+        
+            const { data, error } = await supabase
+                .from("projects")
+                .select("*");
+        
+            console.log(data);
+            console.log(error);
+        
+        }
+        
+        testConnection();
         // --- UTILS & CORE ---
         const formatCurrency = (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount || 0);
         const formatDate = (dateString) => {
