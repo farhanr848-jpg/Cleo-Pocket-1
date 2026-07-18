@@ -7,7 +7,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -64,8 +64,15 @@
 
    <aside id="sidebar" class="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl flex flex-col transition-all duration-300 z-50 fixed md:relative h-full -translate-x-full md:translate-x-0 shadow-xl md:shadow-none">
         <div class="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800">
-            <i class="ph-fill ph-wallet text-primary text-2xl mr-2"></i>
-            <span class="font-bold text-lg tracking-tight">Cleo Pocket <span class="text-[10px] block font-normal text-slate-500 -mt-1">by ersandyf_</span></span>
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                    <i class="ph-fill ph-wallet text-xl"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-extrabold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 leading-none mb-0.5">Cleo Pocket</span>
+                    <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 tracking-widest uppercase">By Ersandyf_</span>
+                </div>
+            </div>
             <button id="closeSidebar" class="md:hidden ml-auto text-slate-500"><i class="ph ph-x text-xl"></i></button>
         </div>
         <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-1">
@@ -98,7 +105,7 @@
                 <button id="openSidebar" class="md:hidden text-slate-500 hover:text-slate-900 dark:hover:text-white">
                     <i class="ph ph-list text-2xl"></i>
                 </button>
-                <div class="relative hidden sm:block">
+                <div class="relative hidden">
                     <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     <input type="text" id="globalSearch" placeholder="Search (Ctrl+K)" class="pl-9 pr-4 py-1.5 w-64 rounded-full bg-slate-100 dark:bg-slate-800 border-none focus:ring-2 focus:ring-primary text-sm transition-shadow outline-none dark:text-white placeholder-slate-400">
                 </div>
@@ -156,7 +163,7 @@
                     </div>
                     <div class="glass-panel rounded-2xl p-5 hover-lift shadow-sm">
                         <div class="flex justify-between items-start">
-                            <div><p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Penerimaan (Bulan Ini)</p><h3 class="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400" id="dashPenerimaan">Rp 0</h3></div>
+                            <div><p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Pemasukan (Bulan Ini)</p><h3 class="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400" id="dashPenerimaan">Rp 0</h3></div>
                             <div class="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400"><i class="ph ph-trend-up text-xl"></i></div>
                         </div>
                     </div>
@@ -206,7 +213,7 @@
                         </div>
                     </div>
                     <div class="glass-panel rounded-2xl p-5 shadow-sm">
-                        <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Aktivitas Terbaru</h3>
+                        <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Riwayat Aktivitas</h3>
                         <div class="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 dark:before:via-slate-800 before:to-transparent" id="dashTimeline"></div>
                     </div>
                 </div>
@@ -295,7 +302,7 @@
                         <h4 class="text-lg font-bold text-slate-900 dark:text-white mt-1" id="detailSaldoAwal">Rp 0</h4>
                     </div>
                     <div class="glass-panel rounded-xl p-4 shadow-sm border-l-4 border-l-emerald-500">
-                        <p class="text-xs text-slate-500 font-medium">Penerimaan (+)</p>
+                        <p class="text-xs text-slate-500 font-medium">Pemasukan (+)</p>
                         <h4 class="text-lg font-bold text-emerald-600 mt-1" id="detailPenerimaan">Rp 0</h4>
                     </div>
                     <div class="glass-panel rounded-xl p-4 shadow-sm border-l-4 border-l-rose-500">
@@ -397,7 +404,7 @@
                 <div class="flex justify-between items-center mb-6">
                     <div>
                         <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Transfer Saldo</h1>
-                        <p class="text-slate-500 dark:text-slate-400 mt-1">Mutasi antar Kantong (tidak mengubah cashflow project).</p>
+                        <p class="text-slate-500 dark:text-slate-400 mt-1">Mutasi antar Kantong (dan terintegrasi ke Project/Timeline).</p>
                     </div>
                     <button onclick="openModal('modalTransfer')" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm">
                         <i class="ph ph-arrows-left-right"></i> Transfer Baru
@@ -501,7 +508,6 @@
             </div>
         </div>
     </main>
-
 
     <!-- Modal Transaksi -->
     <div id="modalTransaction" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4 opacity-0 transition-opacity duration-200">
@@ -668,9 +674,15 @@
             </div>
             <div class="p-5">
                 <form id="formTransfer" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Tanggal</label>
-                        <input type="date" id="tfDate" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Tanggal</label>
+                            <input type="date" id="tfDate" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Project *</label>
+                            <select id="tfProject" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary text-sm"></select>
+                        </div>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="flex-1">
@@ -737,11 +749,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // Inisialisasi Supabase hanya di sini
     const SUPABASE_URL = "https://wduukpwuhmvzzccdaopr.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkdXVrcHd1aG12enpjY2Rhb3ByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzNjQwOTksImV4cCI6MjA5OTk0MDA5OX0.pDrPLzLDbkmvUBbwfv3KxNieHeFDQpoJJJaLre5XQrM";
-    
-    // Gunakan 'window.supabaseClient' untuk memastikan variabel ini aman secara global
     window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         // --- UTILS & CORE ---
@@ -752,7 +761,6 @@
         };
         const generateId = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
         
-        // Convert File to Base64 (Untuk Dokumen Pendukung)
         const fileToBase64 = (file) => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -791,7 +799,6 @@
         const closeConfirm = () => closeModal('modalConfirm');
         document.getElementById('btnConfirmAction').addEventListener('click', () => { if(confirmActionCallback) confirmActionCallback(); closeConfirm(); });
 
-        // --- APP STATE ---
         let state = {
             currentView: 'dashboard', activeProjectId: null, activePocketId: null,
             useMock: true, db: null,
@@ -828,11 +835,12 @@
                 state.data.pockets.forEach(p => balances[p.id] = 0);
                 
                 state.data.transactions.forEach(tx => {
-                    if(balances[tx.pocket_id] === undefined) balances[tx.pocket_id] = 0;
+                    // Abaikan Transfer Masuk & Keluar agar tidak double hitung dengan transfers table
                     if(tx.type === 'Penerimaan' || tx.type === 'Saldo Awal') balances[tx.pocket_id] += Number(tx.amount);
                     if(tx.type === 'Pengeluaran') balances[tx.pocket_id] -= Number(tx.amount);
                 });
                 
+                // Kalkulasi transfer untuk saldo antar kantong
                 state.data.transfers.forEach(tf => {
                     if(balances[tf.from_pocket] !== undefined) balances[tf.from_pocket] -= Number(tf.amount);
                     if(balances[tf.to_pocket] !== undefined) balances[tf.to_pocket] += Number(tf.amount);
@@ -848,11 +856,7 @@
                 .from(table)
                 .insert([payload]);
                 
-                if(error){
-                    console.error(error);
-                    throw error;
-                }
-                
+                if(error){ console.error(error); throw error; }
                 await this.loadAll(); }
                 this.calculateBalances(); this.saveMock(); return payload;
             },
@@ -865,11 +869,7 @@
                 .update(payload)
                 .eq("id",id);
                 
-                if(error){
-                    console.error(error);
-                    throw error;
-                }
-                
+                if(error){ console.error(error); throw error; }
                 await this.loadAll(); }
                 this.calculateBalances(); this.saveMock();
             },
@@ -880,11 +880,7 @@
                 .delete()
                 .eq("id",id);
                 
-                if(error){
-                    console.error(error);
-                    throw error;
-                }
-                
+                if(error){ console.error(error); throw error; }
                 await this.loadAll(); }
                 this.calculateBalances(); this.saveMock();
             }
@@ -911,7 +907,7 @@
             if(window.innerWidth < 768) document.getElementById('sidebar').classList.add('-translate-x-full');
         };
 
-        // --- EXPORT PDF & EXCEL LOGIC ---
+        // --- EXPORT PDF & EXCEL ---
         const exportToPDF = (data, filename, reportTitle) => {
             if(!data || data.length === 0) return showToast('Tidak ada data untuk diekspor', 'error');
             const { jsPDF } = window.jspdf;
@@ -925,7 +921,7 @@
             const rows = data.map(t => {
                 const pName = state.data.projects.find(p=>p.id===t.project_id)?.name || '-';
                 const pocName = state.data.pockets.find(p=>p.id===t.pocket_id)?.name || '-';
-                const val = t.type === 'Pengeluaran' ? -Number(t.amount) : Number(t.amount);
+                const val = (t.type === 'Pengeluaran' || t.type === 'Transfer Keluar') ? -Number(t.amount) : Number(t.amount);
                 return [formatDate(t.date), pName, pocName, t.type, t.payment_method, t.description, formatCurrency(val)];
             });
 
@@ -952,8 +948,8 @@
                 'Jenis': t.type,
                 'Metode': t.payment_method,
                 'Keterangan': t.description,
-                'Nominal Masuk': t.type !== 'Pengeluaran' ? Number(t.amount) : 0,
-                'Nominal Keluar': t.type === 'Pengeluaran' ? Number(t.amount) : 0
+                'Nominal Masuk': (t.type !== 'Pengeluaran' && t.type !== 'Transfer Keluar') ? Number(t.amount) : 0,
+                'Nominal Keluar': (t.type === 'Pengeluaran' || t.type === 'Transfer Keluar') ? Number(t.amount) : 0
             }));
 
             const ws = XLSX.utils.json_to_sheet(worksheetData);
@@ -971,8 +967,8 @@
             
             const now = new Date();
             const currMonthTx = tx.filter(t => new Date(t.date).getMonth() === now.getMonth() && new Date(t.date).getFullYear() === now.getFullYear());
-            const sumMasuk = currMonthTx.filter(t => t.type === 'Penerimaan').reduce((s, t) => s + Number(t.amount), 0);
-            const sumKeluar = currMonthTx.filter(t => t.type === 'Pengeluaran').reduce((s, t) => s + Number(t.amount), 0);
+            const sumMasuk = currMonthTx.filter(t => t.type !== 'Pengeluaran' && t.type !== 'Transfer Keluar').reduce((s, t) => s + Number(t.amount), 0);
+            const sumKeluar = currMonthTx.filter(t => t.type === 'Pengeluaran' || t.type === 'Transfer Keluar').reduce((s, t) => s + Number(t.amount), 0);
 
             document.getElementById('dashTotalSaldo').innerText = formatCurrency(totalSaldo);
             document.getElementById('dashActiveProjects').innerText = activeProj;
@@ -991,7 +987,10 @@
 
             const berjalan = state.data.projects.filter(p => p.status === 'Berjalan').slice(0, 5);
             document.getElementById('dashProjectsList').innerHTML = berjalan.map(p => {
-                const pBal = state.data.transactions.filter(t => t.project_id === p.id).reduce((acc, t) => acc + (t.type === 'Pengeluaran' ? -Number(t.amount) : Number(t.amount)), 0);
+                const pBal = state.data.transactions.filter(t => t.project_id === p.id).reduce((acc, t) => {
+                    const isKeluar = (t.type === 'Pengeluaran' || t.type === 'Transfer Keluar');
+                    return acc + (isKeluar ? -Number(t.amount) : Number(t.amount));
+                }, 0);
                 return `
                 <tr class="hover:bg-slate-50 cursor-pointer" onclick="navigate('project-detail', '${p.id}')">
                     <td class="py-3 pr-4"><div class="font-medium flex items-center gap-2"><span class="w-2 h-2 rounded-full ${p.color || 'bg-primary'}"></span> ${p.name}</div></td>
@@ -1001,7 +1000,7 @@
 
             const recentTx = [...state.data.transactions].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
             document.getElementById('dashTimeline').innerHTML = recentTx.map(t => {
-                const isMasuk = t.type !== 'Pengeluaran';
+                const isMasuk = t.type !== 'Pengeluaran' && t.type !== 'Transfer Keluar';
                 const pName = state.data.projects.find(p => p.id === t.project_id)?.name || 'Unknown';
                 return `
                 <div class="relative flex gap-4">
@@ -1029,10 +1028,13 @@
             
             let filtered = state.data.projects
                 .filter(p => p.name.toLowerCase().includes(search) && (status === 'all' || p.status === status))
-                .sort((a, b) => statusOrder[a.status] - statusOrder[b.status]); // Sort by status priority
+                .sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
 
             document.getElementById('projectsGrid').innerHTML = filtered.map(p => {
-                const pBal = state.data.transactions.filter(t => t.project_id === p.id).reduce((s,t) => s + (t.type === 'Pengeluaran' ? -Number(t.amount) : Number(t.amount)), 0);
+                const pBal = state.data.transactions.filter(t => t.project_id === p.id).reduce((s,t) => {
+                    const isKeluar = (t.type === 'Pengeluaran' || t.type === 'Transfer Keluar');
+                    return s + (isKeluar ? -Number(t.amount) : Number(t.amount));
+                }, 0);
                 const sColors = { 'Berjalan':'bg-blue-100 text-blue-700', 'Selesai':'bg-emerald-100 text-emerald-700', 'Ditunda':'bg-amber-100 text-amber-700', 'Dibatalkan':'bg-rose-100 text-rose-700' };
                 return `
                 <div class="glass-panel p-5 rounded-2xl hover-lift cursor-pointer shadow-sm relative overflow-hidden" onclick="navigate('project-detail', '${p.id}')">
@@ -1063,23 +1065,22 @@
             
             const pTx = state.data.transactions.filter(t => t.project_id === p.id).sort((a,b) => new Date(b.date) - new Date(a.date));
             const sumAwal = pTx.filter(t => t.type === 'Saldo Awal').reduce((s,t) => s+Number(t.amount), 0);
-            const sumMasuk = pTx.filter(t => t.type === 'Penerimaan').reduce((s,t) => s+Number(t.amount), 0);
-            const sumKeluar = pTx.filter(t => t.type === 'Pengeluaran').reduce((s,t) => s+Number(t.amount), 0);
+            const sumMasuk = pTx.filter(t => t.type === 'Penerimaan' || t.type === 'Transfer Masuk').reduce((s,t) => s+Number(t.amount), 0);
+            const sumKeluar = pTx.filter(t => t.type === 'Pengeluaran' || t.type === 'Transfer Keluar').reduce((s,t) => s+Number(t.amount), 0);
 
             document.getElementById('detailSaldoAwal').innerText = formatCurrency(sumAwal);
             document.getElementById('detailPenerimaan').innerText = formatCurrency(sumMasuk);
             document.getElementById('detailPengeluaran').innerText = formatCurrency(sumKeluar);
             document.getElementById('detailSaldoAkhir').innerText = formatCurrency(sumAwal + sumMasuk - sumKeluar);
 
-            // Tab Overview
             document.getElementById('detailProjectDesc').innerText = p.description || 'Tidak ada deskripsi rinci untuk project ini.';
             document.getElementById('statTotalTx').innerText = pTx.length;
             document.getElementById('statMasuk').innerText = formatCurrency(sumMasuk+sumAwal);
             document.getElementById('statKeluar').innerText = formatCurrency(sumKeluar);
 
-            // Tab Transaksi
             document.getElementById('projectTransactionsList').innerHTML = pTx.map(t => {
-                const isMasuk = t.type !== 'Pengeluaran';
+                const isMasuk = (t.type !== 'Pengeluaran' && t.type !== 'Transfer Keluar');
+                const isTransferTx = t.type.startsWith('Transfer');
                 const poc = state.data.pockets.find(k => k.id === t.pocket_id);
                 const hasDocs = t.attachments && t.attachments.length > 0;
                 
@@ -1099,8 +1100,10 @@
                     <td class="px-4 py-3 text-right font-mono font-medium text-emerald-600">${isMasuk ? formatCurrency(t.amount) : '-'}</td>
                     <td class="px-4 py-3 text-right font-mono font-medium text-rose-600">${!isMasuk ? formatCurrency(t.amount) : '-'}</td>
                     <td class="px-4 py-3 text-center">
-                        <button onclick="editTransaction('${t.id}')" class="p-1.5 text-slate-400 hover:text-primary"><i class="ph ph-pencil-simple"></i></button>
-                        <button onclick="deleteTransaction('${t.id}')" class="p-1.5 text-slate-400 hover:text-rose-500"><i class="ph ph-trash"></i></button>
+                        ${!isTransferTx ? `
+                        <button onclick="editTransaction('${t.id}')" class="p-1.5 text-slate-400 hover:text-primary" title="Edit"><i class="ph ph-pencil-simple"></i></button>
+                        <button onclick="deleteTransaction('${t.id}')" class="p-1.5 text-slate-400 hover:text-rose-500" title="Hapus"><i class="ph ph-trash"></i></button>
+                        ` : `<span class="text-[10px] text-slate-400 font-medium">Via Transfer</span>`}
                     </td>
                 </tr>
             `}).join('') || '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">Belum ada transaksi di project ini.</td></tr>';
@@ -1133,7 +1136,8 @@
             const projs = {};
             pTx.forEach(t => {
                 if(!projs[t.project_id]) projs[t.project_id] = 0;
-                projs[t.project_id] += t.type === 'Pengeluaran' ? -Number(t.amount) : Number(t.amount);
+                const isKeluar = (t.type === 'Pengeluaran' || t.type === 'Transfer Keluar');
+                projs[t.project_id] += isKeluar ? -Number(t.amount) : Number(t.amount);
             });
 
             document.getElementById('pocProjectAllocations').innerHTML = Object.keys(projs).map(projId => {
@@ -1166,8 +1170,7 @@
             `}).join('') || '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">Belum ada riwayat transfer.</td></tr>';
         };
 
-        // --- FORMS & CRUD ACTIONS ---
-        
+        // --- FORMS & CRUD ---
         const setupColorPicker = (containerId) => {
             const container = document.getElementById(containerId);
             container.addEventListener('click', (e) => {
@@ -1300,7 +1303,6 @@
                 document.getElementById('transId').value = '';
                 document.getElementById('transDate').valueAsDate = new Date();
                 
-                // Pastikan yang di-select adalah yang aktif saat ini
                 if(prefillProjId) projSel.value = prefillProjId;
                 if(prefillPocId) pocSel.value = prefillPocId;
             }
@@ -1323,7 +1325,6 @@
             const pocketId = document.getElementById('transPocket').value;
             const txId = document.getElementById('transId').value;
 
-            // Validasi Saldo Pengeluaran
             if(type === 'Pengeluaran') {
                 const pocket = state.data.pockets.find(p => p.id === pocketId);
                 let currentBal = Number(pocket.balance);
@@ -1358,7 +1359,6 @@
             finally { btn.disabled = false; }
         });
 
-        // Dokumen Viewer Modal
         const viewDocs = (txId) => {
             const tx = state.data.transactions.find(t => t.id === txId);
             if(!tx || !tx.attachments || tx.attachments.length === 0) return;
@@ -1372,27 +1372,80 @@
             openModal('modalDocsViewer');
         };
 
-        // Transfer Logic
         document.getElementById('modalTransfer').addEventListener('transitionstart', (e) => {
             if(!e.target.classList.contains('hidden')) {
+                if(state.data.projects.length === 0) {
+                    showToast("Buat minimal 1 project terlebih dahulu!", "error");
+                    closeModal("modalTransfer"); return;
+                }
+                if(state.data.pockets.length < 2) {
+                    showToast("Minimal butuh 2 kantong untuk melakukan transfer!", "error");
+                    closeModal("modalTransfer"); return;
+                }
+
                 const pList = state.data.pockets.map(p => `<option value="${p.id}">${p.name} (${formatCurrency(p.balance)})</option>`).join('');
-                document.getElementById('tfFrom').innerHTML = pList; document.getElementById('tfTo').innerHTML = pList;
+                document.getElementById('tfFrom').innerHTML = pList; 
+                document.getElementById('tfTo').innerHTML = pList;
+                
+                const projList = state.data.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+                document.getElementById('tfProject').innerHTML = projList;
+
                 document.getElementById('tfDate').valueAsDate = new Date();
             }
         });
+
         document.getElementById('formTransfer').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const from = document.getElementById('tfFrom').value, to = document.getElementById('tfTo').value, amount = parseFloat(document.getElementById('tfAmount').value);
+            const from = document.getElementById('tfFrom').value;
+            const to = document.getElementById('tfTo').value;
+            const amount = parseFloat(document.getElementById('tfAmount').value);
+            const projectId = document.getElementById('tfProject').value;
+            const date = document.getElementById('tfDate').value;
+            const desc = document.getElementById('tfDesc').value;
+
             if(from === to) return showToast('Kantong asal dan tujuan tidak boleh sama!', 'error');
             const pFrom = state.data.pockets.find(p => p.id === from);
+            const pTo = state.data.pockets.find(p => p.id === to);
             if(pFrom && Number(pFrom.balance) < amount) return showToast('Saldo asal tidak cukup!', 'error');
 
+            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
             try {
-                await DB.insert('transfers', { from_pocket: from, to_pocket: to, amount: amount, date: document.getElementById('tfDate').value, description: document.getElementById('tfDesc').value });
+                // 1. Simpan ke Transfer History agar kantong dan menu transfer terupdate
+                await DB.insert('transfers', { from_pocket: from, to_pocket: to, amount: amount, date: date, description: desc });
+                
+                // 2. Mapping sebagai Pengeluaran untuk Timeline & Project
+                await DB.insert('transactions', {
+                    project_id: projectId,
+                    pocket_id: from,
+                    date: date,
+                    type: 'Transfer Keluar',
+                    amount: amount,
+                    payment_method: 'Transfer',
+                    description: `Transfer ke ${pTo.name}: ${desc}`
+                });
+
+                // 3. Mapping sebagai Penerimaan untuk Timeline & Project
+                await DB.insert('transactions', {
+                    project_id: projectId,
+                    pocket_id: to,
+                    date: date,
+                    type: 'Transfer Masuk',
+                    amount: amount,
+                    payment_method: 'Transfer',
+                    description: `Transfer dari ${pFrom.name}: ${desc}`
+                });
+
                 closeModal('modalTransfer'); e.target.reset(); showToast('Transfer sukses!');
+                
                 if(state.currentView === 'transfers') renderTransfers();
                 if(state.currentView === 'pocket-detail') renderPocketDetail();
-            } catch (err) { showToast(err.message, 'error'); }
+                if(state.currentView === 'project-detail') renderProjectDetail();
+                if(state.currentView === 'dashboard') renderDashboard();
+            } catch (err) { 
+                showToast(err.message, 'error'); 
+            } finally {
+                btn.disabled = false;
+            }
         });
 
         // Tabs
@@ -1430,7 +1483,7 @@
             const data = getFilteredReportData();
             let sumIn = 0, sumOut = 0;
             document.getElementById('repPreviewList').innerHTML = data.map(t => {
-                const isMasuk = t.type !== 'Pengeluaran';
+                const isMasuk = (t.type !== 'Pengeluaran' && t.type !== 'Transfer Keluar');
                 if(isMasuk) sumIn += Number(t.amount); else sumOut += Number(t.amount);
                 return `
                 <tr>
@@ -1468,7 +1521,6 @@
         document.getElementById('openSidebar').addEventListener('click', () => document.getElementById('sidebar').classList.remove('-translate-x-full'));
         document.getElementById('closeSidebar').addEventListener('click', () => document.getElementById('sidebar').classList.add('-translate-x-full'));
         document.querySelectorAll('.nav-item').forEach(el => el.addEventListener('click', (e) => { e.preventDefault(); navigate(e.currentTarget.dataset.view); }));
-        document.addEventListener('keydown', (e) => { if((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('globalSearch').focus(); }});
         document.getElementById('themeToggle').addEventListener('click', () => {
             const html = document.documentElement;
             if(html.classList.contains('dark')) { html.classList.remove('dark'); document.getElementById('themeIcon').className = 'ph ph-moon text-xl'; localStorage.setItem('theme', 'light'); }
