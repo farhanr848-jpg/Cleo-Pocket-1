@@ -1457,7 +1457,9 @@
                 document.getElementById('tfDesc').value = tf.description;
                 document.getElementById('tfLink').value = tf.attachment_link || '';
                 
-                const relTx = state.data.transactions.find(t => t.description.includes(`[TF-${tf.id}]`));
+                const relTx = state.data.transactions.find(
+                    t => t.transfer_id === tf.id
+                );
                 if(relTx) document.getElementById('tfProject').value = relTx.project_id;
             } else {
                 document.getElementById('modalTransferTitle').innerText = 'Transfer Saldo';
@@ -1473,7 +1475,9 @@
         const deleteTransfer = (id) => {
             confirmAction("Hapus Transfer", "Transfer dan riwayat transaksinya di Project akan dihapus. Lanjutkan?", async () => {
                 // Delete related transactions mapping
-                const relTx = state.data.transactions.filter(t => t.description.includes(`[TF-${id}]`));
+                const relTx = state.data.transactions.filter(
+                    t => t.transfer_id === id
+                );
                 for(let t of relTx) await DB.delete('transactions', t.id);
                 // Delete transfer
                 await DB.delete('transfers', id);
@@ -1526,23 +1530,35 @@
                     savedTf = { id: tfId, ...tfPayload };
                     
                     // Bersihkan transaksi mapping yang lama
-                    const oldTx = state.data.transactions.filter(t => t.description.includes(`[TF-${tfId}]`));
-                    for(let t of oldTx) await DB.delete('transactions', t.id);
-                } else {
-                    savedTf = await DB.insert('transfers', tfPayload);
-                }
+                    const oldTx = state.data.transactions.filter(
+                        t => t.transfer_id === tfId
+                    );
+                    
+                    for (const t of oldTx) {
+                        await DB.delete('transactions', t.id);
+                    }
                 
                 // Buat 2 transaksi mapping baru agar masuk ke Project
                 await DB.insert('transactions', {
-                    project_id: projectId, pocket_id: from, date: date,
-                    type: 'Transfer Keluar', amount: amount, payment_method: 'Transfer',
-                    description: `[TF-${savedTf.id}] Transfer ke ${pTo.name}: ${desc}`
+                    project_id: projectId,
+                    pocket_id: from,
+                    transfer_id: savedTf.id,
+                    date: date,
+                    type: 'Transfer Keluar',
+                    amount: amount,
+                    payment_method: 'Transfer',
+                    description: `Transfer ke ${pTo.name}: ${desc}`
                 });
 
                 await DB.insert('transactions', {
-                    project_id: projectId, pocket_id: to, date: date,
-                    type: 'Transfer Masuk', amount: amount, payment_method: 'Transfer',
-                    description: `[TF-${savedTf.id}] Transfer dari ${pFrom.name}: ${desc}`
+                    project_id: projectId,
+                    pocket_id: to,
+                    transfer_id: savedTf.id,
+                    date: date,
+                    type: 'Transfer Masuk',
+                    amount: amount,
+                    payment_method: 'Transfer',
+                    description: `Transfer dari ${pFrom.name}: ${desc}`
                 });
 
                 closeModal('modalTransfer'); e.target.reset(); showToast(tfId ? 'Transfer diperbarui!' : 'Transfer sukses!');
