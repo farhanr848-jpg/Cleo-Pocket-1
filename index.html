@@ -741,7 +741,14 @@
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
         
         // Pastikan inisialisasi ini HANYA ADA SATU KALI di seluruh file
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let supabase; 
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } catch (e) {
+            console.error("Gagal inisialisasi Supabase:", e);
+            // Fallback jika sudah ada atau gagal
+            supabase = window.supabaseClient; 
+        }
         
         // --- UTILS & CORE ---
         const formatCurrency = (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount || 0);
