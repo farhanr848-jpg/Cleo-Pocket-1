@@ -404,9 +404,9 @@
                 <div class="flex justify-between items-center mb-6">
                     <div>
                         <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Transfer Saldo</h1>
-                        <p class="text-slate-500 dark:text-slate-400 mt-1">Mutasi antar Kantong (dan terintegrasi ke Project/Timeline).</p>
+                        <p class="text-slate-500 dark:text-slate-400 mt-1">Mutasi antar Kantong (tidak mengubah cashflow project).</p>
                     </div>
-                    <button onclick="openModal('modalTransfer')" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm">
+                    <button onclick="openTransferModal()" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm">
                         <i class="ph ph-arrows-left-right"></i> Transfer Baru
                     </button>
                 </div>
@@ -419,6 +419,7 @@
                                 <th class="px-4 py-3 font-medium">Ke Kantong</th>
                                 <th class="px-4 py-3 font-medium text-right">Nominal</th>
                                 <th class="px-4 py-3 font-medium">Keterangan</th>
+                                <th class="px-4 py-3 font-medium text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="transfersList" class="divide-y divide-slate-100 dark:divide-slate-800/50 text-sm"></tbody>
@@ -543,7 +544,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Nominal (Rp) *</label>
-                        <input type="number" id="transAmount" min="1" step="any" required placeholder="0" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary font-mono text-lg font-bold">
+                        <input type="text" id="transAmount" required oninput="formatInputNumber(event)" placeholder="0" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary font-mono text-lg font-bold">
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div>
@@ -561,6 +562,10 @@
                             <label class="block text-sm font-medium mb-1">Dokumen Pendukung</label>
                             <input type="file" id="transDocs" multiple accept="image/*,.pdf" class="w-full px-2 py-1.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-sm">
                             <p class="text-[10px] text-slate-500 mt-1">Maks. 2MB. Bisa lebih dari 1 file.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Tautan Pendukung (URL)</label>
+                            <input type="url" id="transLink" placeholder="https://..." class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary text-sm">
                         </div>
                     </div>
                     <div>
@@ -667,13 +672,14 @@
 
     <!-- Modal Transfer -->
     <div id="modalTransfer" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4 opacity-0 transition-opacity duration-200">
-        <div class="glass-panel bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-xl transform scale-95 transition-transform duration-200">
+        <div class="glass-panel bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl shadow-xl transform scale-95 transition-transform duration-200 flex flex-col max-h-[90vh]">
             <div class="p-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                <h3 class="font-bold text-lg">Transfer Saldo</h3>
+                <h3 class="font-bold text-lg" id="modalTransferTitle">Transfer Saldo</h3>
                 <button type="button" onclick="closeModal('modalTransfer')" class="text-slate-400 hover:text-slate-600"><i class="ph ph-x text-xl"></i></button>
             </div>
-            <div class="p-5">
+            <div class="p-5 overflow-y-auto flex-1 no-scrollbar">
                 <form id="formTransfer" class="space-y-4">
+                    <input type="hidden" id="tfId">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium mb-1">Tanggal</label>
@@ -697,15 +703,25 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Nominal (Rp) *</label>
-                        <input type="number" id="tfAmount" min="1" step="any" required placeholder="0" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary font-mono text-lg font-bold">
+                        <input type="text" id="tfAmount" required oninput="formatInputNumber(event)" placeholder="0" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary font-mono text-lg font-bold">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Dokumen Pendukung</label>
+                            <input type="file" id="tfDocs" multiple accept="image/*,.pdf" class="w-full px-2 py-1.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Tautan Pendukung (URL)</label>
+                            <input type="url" id="tfLink" placeholder="https://..." class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary text-sm">
+                        </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium mb-1">Keterangan</label>
+                        <label class="block text-sm font-medium mb-1">Keterangan *</label>
                         <input type="text" id="tfDesc" required placeholder="Pindah dana operasional..." class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none focus:ring-2 focus:ring-primary text-sm">
                     </div>
-                    <div class="pt-2 flex justify-end gap-2">
+                    <div class="pt-4 flex justify-end gap-2 border-t border-slate-200 dark:border-slate-700">
                         <button type="button" onclick="closeModal('modalTransfer')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium">Batal</button>
-                        <button type="submit" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">Proses Transfer</button>
+                        <button type="submit" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-md">Simpan Transfer</button>
                     </div>
                 </form>
             </div>
@@ -749,11 +765,20 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+    // Inisialisasi Supabase hanya di sini
     const SUPABASE_URL = "https://wduukpwuhmvzzccdaopr.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkdXVrcHd1aG12enpjY2Rhb3ByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzNjQwOTksImV4cCI6MjA5OTk0MDA5OX0.pDrPLzLDbkmvUBbwfv3KxNieHeFDQpoJJJaLre5XQrM";
+    
+    // Gunakan 'window.supabaseClient' untuk memastikan variabel ini aman secara global
     window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         // --- UTILS & CORE ---
+        const formatInputNumber = (e) => {
+            let val = e.target.value.replace(/\D/g, '');
+            e.target.value = val === '' ? '' : new Intl.NumberFormat('id-ID').format(val);
+        };
+        const parseInputNumber = (val) => parseFloat(val.toString().replace(/\./g, '')) || 0;
+        
         const formatCurrency = (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount || 0);
         const formatDate = (dateString) => {
             if(!dateString) return '-';
@@ -835,16 +860,13 @@
                 state.data.pockets.forEach(p => balances[p.id] = 0);
                 
                 state.data.transactions.forEach(tx => {
-                    // Abaikan Transfer Masuk & Keluar agar tidak double hitung dengan transfers table
-                    if(tx.type === 'Penerimaan' || tx.type === 'Saldo Awal') balances[tx.pocket_id] += Number(tx.amount);
-                    if(tx.type === 'Pengeluaran') balances[tx.pocket_id] -= Number(tx.amount);
+                    if(balances[tx.pocket_id] === undefined) balances[tx.pocket_id] = 0;
+                    if(tx.type === 'Penerimaan' || tx.type === 'Saldo Awal' || tx.type === 'Transfer Masuk') balances[tx.pocket_id] += Number(tx.amount);
+                    if(tx.type === 'Pengeluaran' || tx.type === 'Transfer Keluar') balances[tx.pocket_id] -= Number(tx.amount);
                 });
                 
-                // Kalkulasi transfer untuk saldo antar kantong
-                state.data.transfers.forEach(tf => {
-                    if(balances[tf.from_pocket] !== undefined) balances[tf.from_pocket] -= Number(tf.amount);
-                    if(balances[tf.to_pocket] !== undefined) balances[tf.to_pocket] += Number(tf.amount);
-                });
+                // Kalkulasi transfer untuk saldo antar kantong dilewati, karena sudah direpresentasikan sebagai Transaksi Masuk/Keluar di atas
+                // Ini untuk mencegah perhitungan ganda. Saldo Kantong dihitung PURE dari data transaksi.
 
                 state.data.pockets = state.data.pockets.map(p => ({ ...p, balance: balances[p.id] || 0 }));
             },
@@ -852,13 +874,24 @@
                 if(state.useMock) {
                     payload.id = generateId(); payload.created_at = new Date().toISOString();
                     state.data[table].unshift(payload);
-                } else { const { error } = await state.db
-                .from(table)
-                .insert([payload]);
+                    this.calculateBalances(); this.saveMock();
+                    return payload;
+                } else { 
+                    const { data, error } = await state.db
+                    .from(table)
+                    .insert([payload])
+                    .select()
+                    .single();
                 
-                if(error){ console.error(error); throw error; }
-                await this.loadAll(); }
-                this.calculateBalances(); this.saveMock(); return payload;
+                    if(error){
+                        console.error(error);
+                        throw error;
+                    }
+                
+                    await this.loadAll(); 
+                    this.calculateBalances(); this.saveMock(); 
+                    return data;
+                }
             },
             async update(table, id, payload) {
                 if(state.useMock) {
@@ -907,7 +940,7 @@
             if(window.innerWidth < 768) document.getElementById('sidebar').classList.add('-translate-x-full');
         };
 
-        // --- EXPORT PDF & EXCEL ---
+        // --- EXPORT PDF & EXCEL LOGIC ---
         const exportToPDF = (data, filename, reportTitle) => {
             if(!data || data.length === 0) return showToast('Tidak ada data untuk diekspor', 'error');
             const { jsPDF } = window.jspdf;
@@ -931,8 +964,14 @@
                 body: rows,
                 theme: 'grid',
                 styles: { fontSize: 8 },
-                headStyles: { fillColor: [37, 99, 235] }
+                headStyles: { fillColor: [37, 99, 235] },
+                columnStyles: { 6: { minCellWidth: 28, halign: 'right' } } // Atur lebar minimum kolom Nominal
             });
+            
+            // Tambahkan Footer Branding
+            doc.setFontSize(9);
+            doc.setTextColor(100);
+            doc.text("Dibuat menggunakan Cleo Pocket \uD83D\uDC5B", 14, doc.lastAutoTable.finalY + 10);
 
             doc.save(`${filename}.pdf`);
             showToast('Laporan PDF diunduh!');
@@ -952,6 +991,10 @@
                 'Nominal Keluar': (t.type === 'Pengeluaran' || t.type === 'Transfer Keluar') ? Number(t.amount) : 0
             }));
 
+            // Tambahkan Footer Branding
+            worksheetData.push({}); // Baris kosong
+            worksheetData.push({'Tanggal': 'Dibuat menggunakan Cleo Pocket 👛'});
+
             const ws = XLSX.utils.json_to_sheet(worksheetData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Laporan_Keuangan");
@@ -967,7 +1010,7 @@
             
             const now = new Date();
             const currMonthTx = tx.filter(t => new Date(t.date).getMonth() === now.getMonth() && new Date(t.date).getFullYear() === now.getFullYear());
-            const sumMasuk = currMonthTx.filter(t => t.type !== 'Pengeluaran' && t.type !== 'Transfer Keluar').reduce((s, t) => s + Number(t.amount), 0);
+            const sumMasuk = currMonthTx.filter(t => t.type === 'Penerimaan' || t.type === 'Transfer Masuk').reduce((s, t) => s + Number(t.amount), 0);
             const sumKeluar = currMonthTx.filter(t => t.type === 'Pengeluaran' || t.type === 'Transfer Keluar').reduce((s, t) => s + Number(t.amount), 0);
 
             document.getElementById('dashTotalSaldo').innerText = formatCurrency(totalSaldo);
@@ -987,10 +1030,7 @@
 
             const berjalan = state.data.projects.filter(p => p.status === 'Berjalan').slice(0, 5);
             document.getElementById('dashProjectsList').innerHTML = berjalan.map(p => {
-                const pBal = state.data.transactions.filter(t => t.project_id === p.id).reduce((acc, t) => {
-                    const isKeluar = (t.type === 'Pengeluaran' || t.type === 'Transfer Keluar');
-                    return acc + (isKeluar ? -Number(t.amount) : Number(t.amount));
-                }, 0);
+                const pBal = state.data.transactions.filter(t => t.project_id === p.id).reduce((acc, t) => acc + ((t.type === 'Pengeluaran' || t.type === 'Transfer Keluar') ? -Number(t.amount) : Number(t.amount)), 0);
                 return `
                 <tr class="hover:bg-slate-50 cursor-pointer" onclick="navigate('project-detail', '${p.id}')">
                     <td class="py-3 pr-4"><div class="font-medium flex items-center gap-2"><span class="w-2 h-2 rounded-full ${p.color || 'bg-primary'}"></span> ${p.name}</div></td>
@@ -1000,7 +1040,7 @@
 
             const recentTx = [...state.data.transactions].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
             document.getElementById('dashTimeline').innerHTML = recentTx.map(t => {
-                const isMasuk = t.type !== 'Pengeluaran' && t.type !== 'Transfer Keluar';
+                const isMasuk = (t.type !== 'Pengeluaran' && t.type !== 'Transfer Keluar');
                 const pName = state.data.projects.find(p => p.id === t.project_id)?.name || 'Unknown';
                 return `
                 <div class="relative flex gap-4">
@@ -1028,13 +1068,10 @@
             
             let filtered = state.data.projects
                 .filter(p => p.name.toLowerCase().includes(search) && (status === 'all' || p.status === status))
-                .sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+                .sort((a, b) => statusOrder[a.status] - statusOrder[b.status]); // Sort by status priority
 
             document.getElementById('projectsGrid').innerHTML = filtered.map(p => {
-                const pBal = state.data.transactions.filter(t => t.project_id === p.id).reduce((s,t) => {
-                    const isKeluar = (t.type === 'Pengeluaran' || t.type === 'Transfer Keluar');
-                    return s + (isKeluar ? -Number(t.amount) : Number(t.amount));
-                }, 0);
+                const pBal = state.data.transactions.filter(t => t.project_id === p.id).reduce((s,t) => s + ((t.type === 'Pengeluaran' || t.type === 'Transfer Keluar') ? -Number(t.amount) : Number(t.amount)), 0);
                 const sColors = { 'Berjalan':'bg-blue-100 text-blue-700', 'Selesai':'bg-emerald-100 text-emerald-700', 'Ditunda':'bg-amber-100 text-amber-700', 'Dibatalkan':'bg-rose-100 text-rose-700' };
                 return `
                 <div class="glass-panel p-5 rounded-2xl hover-lift cursor-pointer shadow-sm relative overflow-hidden" onclick="navigate('project-detail', '${p.id}')">
@@ -1077,19 +1114,19 @@
             document.getElementById('statTotalTx').innerText = pTx.length;
             document.getElementById('statMasuk').innerText = formatCurrency(sumMasuk+sumAwal);
             document.getElementById('statKeluar').innerText = formatCurrency(sumKeluar);
-
+            // Tab Transaksi
             document.getElementById('projectTransactionsList').innerHTML = pTx.map(t => {
                 const isMasuk = (t.type !== 'Pengeluaran' && t.type !== 'Transfer Keluar');
                 const isTransferTx = t.type.startsWith('Transfer');
                 const poc = state.data.pockets.find(k => k.id === t.pocket_id);
-                const hasDocs = t.attachments && t.attachments.length > 0;
+                const hasDocs = (t.attachments && t.attachments.length > 0) || t.attachment_link;
                 
                 return `
                 <tr class="hover:bg-slate-50 transition-colors">
                     <td class="px-4 py-3 whitespace-nowrap">${formatDate(t.date)}</td>
                     <td class="px-4 py-3 min-w-[200px]">
                         <div class="font-medium">${t.description} 
-                            ${hasDocs ? `<button onclick="viewDocs('${t.id}')" class="text-primary ml-1 hover:text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase" title="Lihat Dokumen"><i class="ph ph-paperclip"></i> Dokumen</button>` : ''}
+                            ${hasDocs ? `<button onclick="viewDocs('transactions', '${t.id}')" class="text-primary ml-1 hover:text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase" title="Lihat Dokumen"><i class="ph ph-paperclip"></i> Dokumen</button>` : ''}
                         </div>
                         <div class="text-[10px] text-slate-500 flex gap-2 mt-1 uppercase font-bold">
                             <span class="px-1.5 bg-slate-100 rounded">${t.type}</span>
@@ -1101,9 +1138,9 @@
                     <td class="px-4 py-3 text-right font-mono font-medium text-rose-600">${!isMasuk ? formatCurrency(t.amount) : '-'}</td>
                     <td class="px-4 py-3 text-center">
                         ${!isTransferTx ? `
-                        <button onclick="editTransaction('${t.id}')" class="p-1.5 text-slate-400 hover:text-primary" title="Edit"><i class="ph ph-pencil-simple"></i></button>
-                        <button onclick="deleteTransaction('${t.id}')" class="p-1.5 text-slate-400 hover:text-rose-500" title="Hapus"><i class="ph ph-trash"></i></button>
-                        ` : `<span class="text-[10px] text-slate-400 font-medium">Via Transfer</span>`}
+                        <button onclick="editTransaction('${t.id}')" class="p-1.5 text-slate-400 hover:text-primary"><i class="ph ph-pencil-simple"></i></button>
+                        <button onclick="deleteTransaction('${t.id}')" class="p-1.5 text-slate-400 hover:text-rose-500"><i class="ph ph-trash"></i></button>
+                        ` : `<span class="text-[10px] text-slate-400 font-medium whitespace-nowrap">Via Transfer</span>`}
                     </td>
                 </tr>
             `}).join('') || '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">Belum ada transaksi di project ini.</td></tr>';
@@ -1136,8 +1173,7 @@
             const projs = {};
             pTx.forEach(t => {
                 if(!projs[t.project_id]) projs[t.project_id] = 0;
-                const isKeluar = (t.type === 'Pengeluaran' || t.type === 'Transfer Keluar');
-                projs[t.project_id] += isKeluar ? -Number(t.amount) : Number(t.amount);
+                projs[t.project_id] += (t.type === 'Pengeluaran' || t.type === 'Transfer Keluar') ? -Number(t.amount) : Number(t.amount);
             });
 
             document.getElementById('pocProjectAllocations').innerHTML = Object.keys(projs).map(projId => {
@@ -1159,6 +1195,7 @@
             document.getElementById('transfersList').innerHTML = sorted.map(tf => {
                 const pFrom = state.data.pockets.find(p => p.id === tf.from_pocket)?.name || 'Unknown';
                 const pTo = state.data.pockets.find(p => p.id === tf.to_pocket)?.name || 'Unknown';
+                const hasDocs = (tf.attachments && tf.attachments.length > 0) || tf.attachment_link;
                 return `
                 <tr class="hover:bg-slate-50 transition-colors">
                     <td class="px-4 py-3">${formatDate(tf.date)}</td>
@@ -1166,8 +1203,13 @@
                     <td class="px-4 py-3 font-medium text-emerald-600"><div class="flex items-center gap-1"><i class="ph ph-arrow-down-right"></i> ${pTo}</div></td>
                     <td class="px-4 py-3 text-right font-mono font-bold">${formatCurrency(tf.amount)}</td>
                     <td class="px-4 py-3 text-slate-500">${tf.description}</td>
+                    <td class="px-4 py-3 text-center whitespace-nowrap">
+                        ${hasDocs ? `<button onclick="viewDocs('transfers', '${tf.id}')" class="text-primary mr-1 hover:text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase" title="Lihat Dokumen"><i class="ph ph-paperclip"></i> Dokumen</button>` : ''}
+                        <button onclick="editTransfer('${tf.id}')" class="p-1.5 text-slate-400 hover:text-primary"><i class="ph ph-pencil-simple"></i></button>
+                        <button onclick="deleteTransfer('${tf.id}')" class="p-1.5 text-slate-400 hover:text-rose-500"><i class="ph ph-trash"></i></button>
+                    </td>
                 </tr>
-            `}).join('') || '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">Belum ada riwayat transfer.</td></tr>';
+            `}).join('') || '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">Belum ada riwayat transfer.</td></tr>';
         };
 
         // --- FORMS & CRUD ---
@@ -1294,9 +1336,10 @@
                 projSel.value = t.project_id; pocSel.value = t.pocket_id;
                 document.getElementById('transDate').value = t.date;
                 document.getElementById('transType').value = t.type;
-                document.getElementById('transAmount').value = t.amount;
+                document.getElementById('transAmount').value = new Intl.NumberFormat('id-ID').format(t.amount);
                 document.getElementById('transMethod').value = t.payment_method;
                 document.getElementById('transDesc').value = t.description;
+                document.getElementById('transLink').value = t.attachment_link || '';
             } else {
                 document.getElementById('formTransaction').reset();
                 document.getElementById('modalTransactionTitle').innerText = 'Tambah Transaksi';
@@ -1321,10 +1364,11 @@
         document.getElementById('formTransaction').addEventListener('submit', async (e) => {
             e.preventDefault();
             const type = document.getElementById('transType').value;
-            const amount = parseFloat(document.getElementById('transAmount').value);
+            const amount = parseInputNumber(document.getElementById('transAmount').value);
             const pocketId = document.getElementById('transPocket').value;
             const txId = document.getElementById('transId').value;
 
+            // Validasi Saldo Pengeluaran
             if(type === 'Pengeluaran') {
                 const pocket = state.data.pockets.find(p => p.id === pocketId);
                 let currentBal = Number(pocket.balance);
@@ -1339,12 +1383,15 @@
             const files = document.getElementById('transDocs').files;
             const attachments = [];
             for(let f of files) attachments.push(await fileToBase64(f));
+            
+            const link = document.getElementById('transLink').value;
 
             const payload = {
                 project_id: document.getElementById('transProject').value,
                 pocket_id: pocketId, date: document.getElementById('transDate').value,
                 type: type, amount: amount, payment_method: document.getElementById('transMethod').value,
                 description: document.getElementById('transDesc').value,
+                ...(link && { attachment_link: link }),
                 ...(attachments.length > 0 && { attachments: attachments })
             };
 
@@ -1359,84 +1406,144 @@
             finally { btn.disabled = false; }
         });
 
-        const viewDocs = (txId) => {
-            const tx = state.data.transactions.find(t => t.id === txId);
-            if(!tx || !tx.attachments || tx.attachments.length === 0) return;
+        // Dokumen Viewer Modal
+        const viewDocs = (table, id) => {
+            const item = state.data[table].find(t => t.id === id);
+            if(!item) return;
             
             const container = document.getElementById('docsContainer');
-            container.innerHTML = tx.attachments.map(att => {
-                if(att.type.startsWith('image/')) return `<div class="mb-4"><p class="text-xs text-slate-500 mb-1">${att.name}</p><img src="${att.data}" class="w-full rounded-xl border border-slate-200 shadow-sm"></div>`;
-                if(att.type === 'application/pdf') return `<div class="mb-4"><p class="text-xs text-slate-500 mb-1">${att.name}</p><iframe src="${att.data}" class="w-full h-96 rounded-xl border border-slate-200 shadow-sm"></iframe></div>`;
-                return `<div class="p-4 bg-slate-50 rounded-lg"><p>File: ${att.name} (Tipe tidak didukung untuk preview)</p></div>`;
-            }).join('');
+            let html = '';
+            
+            if (item.attachment_link) {
+                html += `<div class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-800">
+                    <p class="text-xs text-primary mb-1 font-bold uppercase"><i class="ph ph-link"></i> Tautan / Link Eksternal</p>
+                    <a href="${item.attachment_link}" target="_blank" class="text-slate-700 dark:text-slate-200 hover:underline break-all block truncate">${item.attachment_link}</a>
+                </div>`;
+            }
+
+            if (item.attachments && item.attachments.length > 0) {
+                html += item.attachments.map(att => {
+                    if(att.type.startsWith('image/')) return `<div class="mb-4"><p class="text-xs text-slate-500 mb-1 font-medium">${att.name}</p><img src="${att.data}" class="w-full rounded-xl border border-slate-200 shadow-sm"></div>`;
+                    if(att.type === 'application/pdf') return `<div class="mb-4"><p class="text-xs text-slate-500 mb-1 font-medium">${att.name}</p><iframe src="${att.data}" class="w-full h-96 rounded-xl border border-slate-200 shadow-sm"></iframe></div>`;
+                    return `<div class="p-4 bg-slate-50 rounded-lg"><p>File: ${att.name} (Tipe tidak didukung untuk preview)</p></div>`;
+                }).join('');
+            }
+            
+            container.innerHTML = html || '<p class="text-center text-slate-500 py-4">Tidak ada dokumen atau tautan pendukung.</p>';
             openModal('modalDocsViewer');
         };
 
-        document.getElementById('modalTransfer').addEventListener('transitionstart', (e) => {
-            if(!e.target.classList.contains('hidden')) {
-                if(state.data.projects.length === 0) {
-                    showToast("Buat minimal 1 project terlebih dahulu!", "error");
-                    closeModal("modalTransfer"); return;
-                }
-                if(state.data.pockets.length < 2) {
-                    showToast("Minimal butuh 2 kantong untuk melakukan transfer!", "error");
-                    closeModal("modalTransfer"); return;
-                }
+        // Transfer Logic
+        const openTransferModal = (editId = null) => {
+            if(state.data.projects.length === 0) return showToast("Buat minimal 1 project terlebih dahulu!", "error");
+            if(state.data.pockets.length < 2) return showToast("Minimal butuh 2 kantong untuk melakukan transfer!", "error");
 
-                const pList = state.data.pockets.map(p => `<option value="${p.id}">${p.name} (${formatCurrency(p.balance)})</option>`).join('');
-                document.getElementById('tfFrom').innerHTML = pList; 
-                document.getElementById('tfTo').innerHTML = pList;
+            const pList = state.data.pockets.map(p => `<option value="${p.id}">${p.name} (${formatCurrency(p.balance)})</option>`).join('');
+            document.getElementById('tfFrom').innerHTML = pList; document.getElementById('tfTo').innerHTML = pList;
+            
+            const projList = state.data.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            document.getElementById('tfProject').innerHTML = projList;
+            
+            if (editId) {
+                const tf = state.data.transfers.find(x => x.id === editId);
+                document.getElementById('modalTransferTitle').innerText = 'Edit Transfer';
+                document.getElementById('tfId').value = tf.id;
+                document.getElementById('tfDate').value = tf.date;
+                document.getElementById('tfFrom').value = tf.from_pocket;
+                document.getElementById('tfTo').value = tf.to_pocket;
+                document.getElementById('tfAmount').value = new Intl.NumberFormat('id-ID').format(tf.amount);
+                document.getElementById('tfDesc').value = tf.description;
+                document.getElementById('tfLink').value = tf.attachment_link || '';
                 
-                const projList = state.data.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-                document.getElementById('tfProject').innerHTML = projList;
-
+                const relTx = state.data.transactions.find(t => t.description.includes(`[TF-${tf.id}]`));
+                if(relTx) document.getElementById('tfProject').value = relTx.project_id;
+            } else {
+                document.getElementById('modalTransferTitle').innerText = 'Transfer Saldo';
+                document.getElementById('formTransfer').reset();
+                document.getElementById('tfId').value = '';
                 document.getElementById('tfDate').valueAsDate = new Date();
             }
-        });
+            
+            openModal('modalTransfer');
+        };
+
+        const editTransfer = (id) => openTransferModal(id);
+        const deleteTransfer = (id) => {
+            confirmAction("Hapus Transfer", "Transfer dan riwayat transaksinya di Project akan dihapus. Lanjutkan?", async () => {
+                // Delete related transactions mapping
+                const relTx = state.data.transactions.filter(t => t.description.includes(`[TF-${id}]`));
+                for(let t of relTx) await DB.delete('transactions', t.id);
+                // Delete transfer
+                await DB.delete('transfers', id);
+                showToast("Transfer dihapus");
+                if(state.currentView === 'transfers') renderTransfers();
+                if(state.currentView === 'pocket-detail') renderPocketDetail();
+                if(state.currentView === 'project-detail') renderProjectDetail();
+                if(state.currentView === 'dashboard') renderDashboard();
+            });
+        };
 
         document.getElementById('formTransfer').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const from = document.getElementById('tfFrom').value;
-            const to = document.getElementById('tfTo').value;
-            const amount = parseFloat(document.getElementById('tfAmount').value);
+            const tfId = document.getElementById('tfId').value;
+            const from = document.getElementById('tfFrom').value, to = document.getElementById('tfTo').value;
+            const amount = parseInputNumber(document.getElementById('tfAmount').value);
             const projectId = document.getElementById('tfProject').value;
             const date = document.getElementById('tfDate').value;
             const desc = document.getElementById('tfDesc').value;
+            const link = document.getElementById('tfLink').value;
 
             if(from === to) return showToast('Kantong asal dan tujuan tidak boleh sama!', 'error');
             const pFrom = state.data.pockets.find(p => p.id === from);
             const pTo = state.data.pockets.find(p => p.id === to);
-            if(pFrom && Number(pFrom.balance) < amount) return showToast('Saldo asal tidak cukup!', 'error');
+            
+            // Validasi saldo (hanya untuk buat baru atau jika kantong berubah)
+            let currentBal = Number(pFrom.balance);
+            if (tfId) {
+                const oldTf = state.data.transfers.find(x => x.id === tfId);
+                if (oldTf && oldTf.from_pocket === from) currentBal += Number(oldTf.amount);
+            }
+            if(pFrom && currentBal < amount) return showToast(`Saldo asal tidak cukup! (Sisa: ${formatCurrency(currentBal)})`, 'error');
+
+            const files = document.getElementById('tfDocs').files;
+            const attachments = [];
+            for(let f of files) attachments.push(await fileToBase64(f));
 
             const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
             try {
-                // 1. Simpan ke Transfer History agar kantong dan menu transfer terupdate
-                await DB.insert('transfers', { from_pocket: from, to_pocket: to, amount: amount, date: date, description: desc });
+                let savedTf;
+                const tfPayload = { 
+                    from_pocket: from, to_pocket: to, amount: amount, 
+                    date: date, description: desc,
+                    ...(link && { attachment_link: link }),
+                    ...(attachments.length > 0 && { attachments: attachments })
+                };
+
+                if (tfId) {
+                    await DB.update('transfers', tfId, tfPayload);
+                    savedTf = { id: tfId, ...tfPayload };
+                    
+                    // Bersihkan transaksi mapping yang lama
+                    const oldTx = state.data.transactions.filter(t => t.description.includes(`[TF-${tfId}]`));
+                    for(let t of oldTx) await DB.delete('transactions', t.id);
+                } else {
+                    savedTf = await DB.insert('transfers', tfPayload);
+                }
                 
-                // 2. Mapping sebagai Pengeluaran untuk Timeline & Project
+                // Buat 2 transaksi mapping baru agar masuk ke Project
                 await DB.insert('transactions', {
-                    project_id: projectId,
-                    pocket_id: from,
-                    date: date,
-                    type: 'Transfer Keluar',
-                    amount: amount,
-                    payment_method: 'Transfer',
-                    description: `Transfer ke ${pTo.name}: ${desc}`
+                    project_id: projectId, pocket_id: from, date: date,
+                    type: 'Transfer Keluar', amount: amount, payment_method: 'Transfer',
+                    description: `[TF-${savedTf.id}] Transfer ke ${pTo.name}: ${desc}`
                 });
 
-                // 3. Mapping sebagai Penerimaan untuk Timeline & Project
                 await DB.insert('transactions', {
-                    project_id: projectId,
-                    pocket_id: to,
-                    date: date,
-                    type: 'Transfer Masuk',
-                    amount: amount,
-                    payment_method: 'Transfer',
-                    description: `Transfer dari ${pFrom.name}: ${desc}`
+                    project_id: projectId, pocket_id: to, date: date,
+                    type: 'Transfer Masuk', amount: amount, payment_method: 'Transfer',
+                    description: `[TF-${savedTf.id}] Transfer dari ${pFrom.name}: ${desc}`
                 });
 
-                closeModal('modalTransfer'); e.target.reset(); showToast('Transfer sukses!');
-                
+                closeModal('modalTransfer'); e.target.reset(); showToast(tfId ? 'Transfer diperbarui!' : 'Transfer sukses!');
                 if(state.currentView === 'transfers') renderTransfers();
                 if(state.currentView === 'pocket-detail') renderPocketDetail();
                 if(state.currentView === 'project-detail') renderProjectDetail();
