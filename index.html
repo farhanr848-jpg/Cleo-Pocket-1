@@ -743,7 +743,6 @@
     
     // Gunakan 'window.supabaseClient' untuk memastikan variabel ini aman secara global
     window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-</script>
         
         // --- UTILS & CORE ---
         const formatCurrency = (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount || 0);
