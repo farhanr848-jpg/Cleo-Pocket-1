@@ -1489,7 +1489,7 @@
             }
         
             state.useMock = false;
-            state.db = supabase;
+            state.db = window.supabaseClient;
         
             const badge = document.getElementById('dbStatusBadge');
             badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span> Supabase Connected';
