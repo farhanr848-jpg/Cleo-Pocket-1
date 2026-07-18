@@ -29,7 +29,6 @@
     <!-- Libraries -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Export Libraries: Excel & PDF -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -745,18 +744,7 @@
             SUPABASE_URL,
             SUPABASE_KEY
         );
-        async function testConnection() {
         
-            const { data, error } = await supabase
-                .from("projects")
-                .select("*");
-        
-            console.log(data);
-            console.log(error);
-        
-        }
-        
-        testConnection();
         // --- UTILS & CORE ---
         const formatCurrency = (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount || 0);
         const formatDate = (dateString) => {
@@ -828,7 +816,10 @@
                         ]);
                         state.data.projects = pRes.data || []; state.data.pockets = pocRes.data || [];
                         state.data.transactions = txRes.data || []; state.data.transfers = tfRes.data || [];
-                    } catch(e) { showToast('Gagal memuat dari Supabase', 'error'); }
+                    } catch(e){
+                        console.error(e);
+                        showToast(e.message,"error");
+                    }
                 }
                 this.calculateBalances();
             },
@@ -854,19 +845,48 @@
                 if(state.useMock) {
                     payload.id = generateId(); payload.created_at = new Date().toISOString();
                     state.data[table].unshift(payload);
-                } else { await state.db.from(table).insert([payload]); await this.loadAll(); }
+                } else { const { error } = await state.db
+                .from(table)
+                .insert([payload]);
+                
+                if(error){
+                    console.error(error);
+                    throw error;
+                }
+                
+                await this.loadAll(); }
                 this.calculateBalances(); this.saveMock(); return payload;
             },
             async update(table, id, payload) {
                 if(state.useMock) {
                     const idx = state.data[table].findIndex(x => x.id === id);
                     if(idx > -1) state.data[table][idx] = { ...state.data[table][idx], ...payload, updated_at: new Date().toISOString() };
-                } else { await state.db.from(table).update(payload).eq('id', id); await this.loadAll(); }
+                } else { const { error } = await state.db
+                .from(table)
+                .update(payload)
+                .eq("id",id);
+                
+                if(error){
+                    console.error(error);
+                    throw error;
+                }
+                
+                await this.loadAll(); }
                 this.calculateBalances(); this.saveMock();
             },
             async delete(table, id) {
                 if(state.useMock) { state.data[table] = state.data[table].filter(x => x.id !== id); }
-                else { await state.db.from(table).delete().eq('id', id); await this.loadAll(); }
+                else { const { error } = await state.db
+                .from(table)
+                .delete()
+                .eq("id",id);
+                
+                if(error){
+                    console.error(error);
+                    throw error;
+                }
+                
+                await this.loadAll(); }
                 this.calculateBalances(); this.saveMock();
             }
         };
@@ -1464,16 +1484,20 @@
         document.getElementById('btnResetConfig').addEventListener('click', () => { localStorage.removeItem('sb_url'); localStorage.removeItem('sb_key'); showToast('Kembali ke Mock DB...'); setTimeout(() => window.location.reload(), 1000); });
 
         const initApp = async () => {
-            if(localStorage.getItem('theme') === 'dark') { document.documentElement.classList.add('dark'); document.getElementById('themeIcon').className = 'ph ph-sun text-xl'; }
-            const sbUrl = localStorage.getItem('sb_url'), sbKey = localStorage.getItem('sb_key');
-            if(sbUrl && sbKey) {
-                state.useMock = false; state.db = supabase.createClient(sbUrl, sbKey);
-                const badge = document.getElementById('dbStatusBadge');
-                badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span> Supabase Connected';
-                badge.className = "hidden sm:inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 cursor-pointer";
-                document.getElementById('configUrl').value = sbUrl; document.getElementById('configKey').value = sbKey;
-            } else document.getElementById('dbStatusBadge').classList.remove('hidden');
-            await DB.loadAll(); navigate('dashboard');
+            if(localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').className = 'ph ph-sun text-xl';
+            }
+        
+            state.useMock = false;
+            state.db = supabase;
+        
+            const badge = document.getElementById('dbStatusBadge');
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span> Supabase Connected';
+            badge.className = "hidden sm:inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800";
+        
+            await DB.loadAll();
+            navigate('dashboard');
         };
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
