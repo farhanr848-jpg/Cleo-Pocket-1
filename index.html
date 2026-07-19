@@ -950,7 +950,6 @@
             doc.text(reportTitle, 14, 15);
             doc.setFontSize(10);
             doc.text(`Dicetak pada: ${new Date().toLocaleDateString('id-ID')}`, 14, 22);
-            doc.text("Dibuat menggunakan Cleo Pocket", 14, doc.lastAutoTable.finalY + 10);
 
             const rows = data.map(t => {
                 const pName = state.data.projects.find(p=>p.id===t.project_id)?.name || '-';
@@ -969,7 +968,10 @@
                 columnStyles: { 6: { minCellWidth: 28, halign: 'right' } } // Atur lebar minimum kolom Nominal
             });
             
-            
+            // Tambahkan Footer Branding
+            doc.setFontSize(9);
+            doc.setTextColor(100);
+            doc.text("Dibuat menggunakan Cleo Pocket", 14, doc.lastAutoTable.finalY + 10);
 
             doc.save(`${filename}.pdf`);
             showToast('Laporan PDF diunduh!');
