@@ -789,6 +789,33 @@
             reader.onload = () => resolve({ name: file.name, data: reader.result, type: file.type || 'application/pdf' });
             reader.onerror = error => reject(error);
         });
+    const uploadFileToSupabase = async (file) => {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${generateId()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            // Mengunggah file ke bucket 'attachments' di Supabase Storage
+            const { data, error } = await window.supabaseClient.storage
+                .from('attachments')
+                .upload(filePath, file);
+
+            if (error) {
+                throw new Error('Gagal mengunggah file: ' + error.message);
+            }
+
+            // Mendapatkan Public URL dari file yang diunggah
+            const { data: publicURLData } = window.supabaseClient.storage
+                .from('attachments')
+                .getPublicUrl(filePath);
+
+            return {
+                name: file.name,
+                data: publicURLData.publicUrl, // Menyimpan URL publik, bukan Base64
+                type: file.type || 'application/pdf'
+            };
+        };
+
+    
 
         let toastTimeout;
         const showToast = (msg, type = 'success') => {
@@ -1397,7 +1424,12 @@
 
             const files = document.getElementById('transDocs').files;
             const attachments = [];
-            for(let f of files) attachments.push(await fileToBase64(f));
+            
+            // Loop file dan unggah ke Supabase Storage satu per satu
+            for(let f of files) {
+                const uploadedFile = await uploadFileToSupabase(f);
+                attachments.push(uploadedFile);
+            }
             
             const link = document.getElementById('transLink').value;
 
@@ -1528,7 +1560,10 @@
 
             const files = document.getElementById('tfDocs').files;
             const attachments = [];
-            for(let f of files) attachments.push(await fileToBase64(f));
+            for(let f of files) {
+                const uploadedFile = await uploadFileToSupabase(f);
+                attachments.push(uploadedFile);
+            }
 
             const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
             try {
