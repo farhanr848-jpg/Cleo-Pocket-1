@@ -1453,7 +1453,7 @@
             finally { btn.disabled = false; }
         });
 
-        onst viewDocs = (table, id) => {
+        const viewDocs = (table, id) => {
             const item = state.data[table].find(t => t.id === id);
             if(!item) return;
             
