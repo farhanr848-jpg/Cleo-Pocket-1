@@ -60,7 +60,7 @@
         .dark .color-option.selected { border: 2px solid #f8fafc; }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden antialiased text-sm">
+<body class="flex min-h-dvh overflow-hidden antialiased text-sm">
 
    <aside id="sidebar" class="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl flex flex-col transition-all duration-300 z-50 fixed md:relative h-full -translate-x-full md:translate-x-0 shadow-xl md:shadow-none">
         <div class="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800">
@@ -99,7 +99,7 @@
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col min-w-0 bg-transparent h-full relative">
+    <main class="flex-1 flex flex-col min-w-0 bg-transparent min-h-0 h-full relative">
         <header class="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md z-10 sticky top-0">
             <div class="flex items-center gap-4">
                 <button id="openSidebar" class="md:hidden text-slate-500 hover:text-slate-900 dark:hover:text-white">
@@ -823,7 +823,7 @@
 
         let state = {
             currentView: 'dashboard', activeProjectId: null, activePocketId: null,
-            useMock: true, db: null,
+            useMock: true, db: null, txPage: 1, txPerPage: 10, // Tambahkan ini
             data: { projects: [], pockets: [], transactions: [], transfers: [] }
         };
         let chartInstance = null;
@@ -1113,8 +1113,13 @@
             document.getElementById('statTotalTx').innerText = pTx.length;
             document.getElementById('statMasuk').innerText = formatCurrency(sumMasuk+sumAwal);
             document.getElementById('statKeluar').innerText = formatCurrency(sumKeluar);
-            // Tab Transaksi
-            document.getElementById('projectTransactionsList').innerHTML = pTx.map(t => {
+            
+            // --- BAGIAN PAGINATION (LANGKAH 2) ---
+            const startIndex = (state.txPage - 1) * state.txPerPage;
+            const paginatedTx = pTx.slice(startIndex, startIndex + state.txPerPage);
+            const totalPages = Math.ceil(pTx.length / state.txPerPage) || 1;
+
+            document.getElementById('projectTransactionsList').innerHTML = paginatedTx.map(t => {
                 const isMasuk = (t.type !== 'Pengeluaran' && t.type !== 'Transfer Keluar');
                 const isTransferTx = t.type.startsWith('Transfer');
                 const poc = state.data.pockets.find(k => k.id === t.pocket_id);
@@ -1143,6 +1148,23 @@
                     </td>
                 </tr>
             `}).join('') || '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">Belum ada transaksi di project ini.</td></tr>';
+
+            // Render Navigasi Pagination di bawah tabel
+            let paginationEl = document.getElementById('projectTxPagination');
+            if(!paginationEl) {
+                paginationEl = document.createElement('div');
+                paginationEl.id = 'projectTxPagination';
+                paginationEl.className = 'p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center text-sm';
+                document.getElementById('tab-transaksi').appendChild(paginationEl);
+            }
+            
+            paginationEl.innerHTML = `
+                <span class="text-slate-500 text-xs">Menampilkan halaman ${state.txPage} dari ${totalPages} (Total ${pTx.length} transaksi)</span>
+                <div class="flex gap-2">
+                    <button onclick="changeTxPage(-1)" ${state.txPage <= 1 ? 'disabled class="opacity-50 cursor-not-allowed"' : ''} class="px-3 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs">Sebelumnya</button>
+                    <button onclick="changeTxPage(1)" ${state.txPage >= totalPages ? 'disabled class="opacity-50 cursor-not-allowed"' : ''} class="px-3 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs">Berikutnya</button>
+                </div>
+            `;
         };
 
         const renderPockets = () => {
@@ -1676,6 +1698,20 @@
             navigate('dashboard');
         };
         document.addEventListener('DOMContentLoaded', initApp);
+
+    // --- TAMBAHAN FUNGSI PAGINATION (LANGKAH 3) ---
+        const changeTxPage = (direction) => {
+            state.txPage += direction;
+            if(state.txPage < 1) state.txPage = 1;
+            renderProjectDetail();
+        };
+
+        // Simpan fungsi navigate lama, lalu bungkus untuk mereset halaman ke 1 setiap kali pindah menu
+        const originalNavigate = navigate;
+        navigate = async (viewId, param = null) => {
+            state.txPage = 1;
+            await originalNavigate(viewId, param);
+        };
     </script>
 </body>
 </html>
