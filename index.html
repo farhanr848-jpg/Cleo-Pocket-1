@@ -251,38 +251,34 @@
             </div>
 
             <div id="view-project-detail" class="view-section hidden fade-in">
-                <div class="mb-4 flex flex-col md:flex-row justify-between items-start gap-4">
-                    <div class="w-full">
-                        <button onclick="navigate('projects')" class="text-slate-500 hover:text-primary flex items-center gap-1 text-sm font-medium mb-4">
-                            <i class="ph ph-arrow-left"></i> Kembali
-                        </button>
-                        <div class="flex justify-between items-start w-full">
-                            <div>
-                                <div class="flex items-center gap-3 mb-1">
-                                    <div id="detailProjectColor" class="w-4 h-4 rounded-full"></div>
-                                    <h1 class="text-2xl font-bold text-slate-900 dark:text-white" id="detailProjectName">Nama Project</h1>
-                                    
-                                    <!-- Explicit Status UI -->
-                                    <div class="ml-2 flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700">
-                                        <span class="text-xs text-slate-500 hidden sm:inline">Status:</span>
-                                        <select id="detailProjectStatus" onchange="updateProjectStatus(this.value)" class="text-xs font-semibold outline-none bg-transparent text-slate-700 dark:text-slate-200 cursor-pointer">
-                                            <option value="Berjalan">Berjalan</option>
-                                            <option value="Selesai">Selesai</option>
-                                            <option value="Ditunda">Ditunda</option>
-                                            <option value="Dibatalkan">Dibatalkan</option>
-                                        </select>
-                                    </div>
-
+                <div class="mb-4">
+                    <button onclick="navigate('projects')" class="text-slate-500 hover:text-primary flex items-center gap-1 text-sm font-medium mb-4">
+                        <i class="ph ph-arrow-left"></i> Kembali
+                    </button>
+                    <div class="flex flex-col md:flex-row justify-between items-start gap-4">
+                        <div class="w-full">
+                            <div class="flex items-center gap-3 mb-1">
+                                <div id="detailProjectColor" class="w-4 h-4 rounded-full"></div>
+                                <h1 class="text-2xl font-bold text-slate-900 dark:text-white" id="detailProjectName">Nama Project</h1>
+                                
+                                <div class="ml-2 flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700">
+                                    <span class="text-xs text-slate-500 hidden sm:inline">Status:</span>
+                                    <select id="detailProjectStatus" onchange="updateProjectStatus(this.value)" class="text-xs font-semibold outline-none bg-transparent text-slate-700 dark:text-slate-200 cursor-pointer">
+                                        <option value="Berjalan">Berjalan</option>
+                                        <option value="Selesai">Selesai</option>
+                                        <option value="Ditunda">Ditunda</option>
+                                        <option value="Dibatalkan">Dibatalkan</option>
+                                    </select>
                                 </div>
-                                <p class="text-slate-500 text-sm flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
-                                    <span><i class="ph ph-user mr-1"></i> <span id="detailProjectPIC">-</span></span>
-                                    <span><i class="ph ph-calendar-blank mr-1"></i> <span id="detailProjectDate">-</span></span>
-                                </p>
                             </div>
-                            <div class="flex gap-2">
-                                <button onclick="editCurrentProject()" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 hover:text-primary" title="Edit Project"><i class="ph ph-pencil-simple text-lg"></i></button>
-                                <button onclick="deleteCurrentProject()" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 hover:text-rose-500" title="Hapus Project"><i class="ph ph-trash text-lg"></i></button>
-                            </div>
+                            <p class="text-slate-500 text-sm flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
+                                <span><i class="ph ph-user mr-1"></i> <span id="detailProjectPIC">-</span></span>
+                                <span><i class="ph ph-calendar-blank mr-1"></i> <span id="detailProjectDate">-</span></span>
+                            </p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="editCurrentProject()" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 hover:text-primary" title="Edit Project"><i class="ph ph-pencil-simple text-lg"></i></button>
+                            <button onclick="deleteCurrentProject()" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 hover:text-rose-500" title="Hapus Project"><i class="ph ph-trash text-lg"></i></button>
                         </div>
                     </div>
                 </div>
@@ -335,25 +331,26 @@
                     </div>
                 </div>
 
-               <div id="tab-transaksi" class="proj-tab-content hidden glass-panel rounded-2xl shadow-sm">
-    <div class="overflow-x-auto max-h-[65vh] overflow-y-auto rounded-2xl">
-        <table class="min-w-[900px] w-full text-left whitespace-nowrap">
-                        <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs uppercase tracking-wider">
-                            <tr>
-                                <th class="px-4 py-3 font-medium">Tanggal</th>
-                                <th class="px-4 py-3 font-medium">Keterangan</th>
-                                <th class="px-4 py-3 font-medium">Kantong</th>
-                                <th class="px-4 py-3 font-medium text-right">Masuk</th>
-                                <th class="px-4 py-3 font-medium text-right">Keluar</th>
-                                <th class="px-4 py-3 font-medium text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="projectTransactionsList" class="divide-y divide-slate-100 dark:divide-slate-800/50 text-sm"></tbody>
-                    </table>
+                <!-- Perbaikan di Sini: Hapus max-h agar halaman bisa scroll secara natural ke bawah -->
+                <div id="tab-transaksi" class="proj-tab-content hidden glass-panel rounded-2xl shadow-sm p-2">
+                    <div class="overflow-x-auto w-full">
+                        <table class="min-w-[900px] w-full text-left whitespace-nowrap">
+                            <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs uppercase tracking-wider">
+                                <tr>
+                                    <th class="px-4 py-3 font-medium">Tanggal</th>
+                                    <th class="px-4 py-3 font-medium">Keterangan</th>
+                                    <th class="px-4 py-3 font-medium">Kantong</th>
+                                    <th class="px-4 py-3 font-medium text-right">Masuk</th>
+                                    <th class="px-4 py-3 font-medium text-right">Keluar</th>
+                                    <th class="px-4 py-3 font-medium text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="projectTransactionsList" class="divide-y divide-slate-100 dark:divide-slate-800/50 text-sm"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            </div>
-
+            
             <div id="view-pockets" class="view-section hidden fade-in">
                 <div class="flex justify-between items-center mb-6">
                     <div>
