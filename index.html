@@ -1707,7 +1707,7 @@
         };
         document.addEventListener('DOMContentLoaded', initApp);
 
-    // --- TAMBAHAN FUNGSI PAGINATION (LANGKAH 3) ---
+   // --- TAMBAHAN FUNGSI PAGINATION (LANGKAH 3) ---
         const changeTxPage = (direction) => {
             state.txPage += direction;
             if(state.txPage < 1) state.txPage = 1;
@@ -1715,7 +1715,7 @@
         };
 
         // Simpan fungsi navigate lama, lalu bungkus untuk mereset halaman ke 1 setiap kali pindah menu
-        let originalNavigate = navigate;
+        originalNavigate = navigate; // Hapus kata 'let' di depan variabel ini
         navigate = async (viewId, param = null) => {
             state.txPage = 1;
             await originalNavigate(viewId, param);
