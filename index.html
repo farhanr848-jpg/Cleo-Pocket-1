@@ -823,7 +823,7 @@
 
         let state = {
             currentView: 'dashboard', activeProjectId: null, activePocketId: null,
-            useMock: true, db: null, txPage: 1, txPerPage: 10, // Tambahkan ini
+            useMock: true, db: null, txPage: 1, txPerPage: 10,
             data: { projects: [], pockets: [], transactions: [], transfers: [] }
         };
         let chartInstance = null;
@@ -861,9 +861,6 @@
                     if(tx.type === 'Penerimaan' || tx.type === 'Saldo Awal' || tx.type === 'Transfer Masuk') balances[tx.pocket_id] += Number(tx.amount);
                     if(tx.type === 'Pengeluaran' || tx.type === 'Transfer Keluar') balances[tx.pocket_id] -= Number(tx.amount);
                 });
-                
-                // Kalkulasi transfer untuk saldo antar kantong dilewati, karena sudah direpresentasikan sebagai Transaksi Masuk/Keluar di atas
-                // Ini untuk mencegah perhitungan ganda. Saldo Kantong dihitung PURE dari data transaksi.
 
                 state.data.pockets = state.data.pockets.map(p => ({ ...p, balance: balances[p.id] || 0 }));
             },
@@ -916,8 +913,8 @@
             }
         };
 
-        // --- ROUTING ---
-        const navigate = async (viewId, param = null) => {
+        // --- ROUTING (Dibuat aman dengan fungsi base asli di dalam objek) ---
+        const baseNavigate = async (viewId, param = null) => {
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-item').forEach(el => {
                 el.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-primary', 'dark:text-primary');
@@ -935,6 +932,12 @@
             if(viewId === 'reports') renderReportsForm();
             
             if(window.innerWidth < 768) document.getElementById('sidebar').classList.add('-translate-x-full');
+        };
+
+        // Wrapper navigate yang otomatis mereset halaman transaksi ke 1
+        const navigate = async (viewId, param = null) => {
+            state.txPage = 1;
+            await baseNavigate(viewId, param);
         };
 
         // --- EXPORT PDF & EXCEL LOGIC ---
@@ -962,10 +965,9 @@
                 theme: 'grid',
                 styles: { fontSize: 8 },
                 headStyles: { fillColor: [37, 99, 235] },
-                columnStyles: { 6: { minCellWidth: 28, halign: 'right' } } // Atur lebar minimum kolom Nominal
+                columnStyles: { 6: { minCellWidth: 28, halign: 'right' } }
             });
             
-            // Tambahkan Footer Branding
             doc.setFontSize(9);
             doc.setTextColor(100);
             doc.text("Dibuat menggunakan Cleo Pocket", 14, doc.lastAutoTable.finalY + 10);
@@ -988,8 +990,7 @@
                 'Nominal Keluar': (t.type === 'Pengeluaran' || t.type === 'Transfer Keluar') ? Number(t.amount) : 0
             }));
 
-            // Tambahkan Footer Branding
-            worksheetData.push({}); // Baris kosong
+            worksheetData.push({});
             worksheetData.push({'Tanggal': 'Dibuat menggunakan Cleo Pocket 👛'});
 
             const ws = XLSX.utils.json_to_sheet(worksheetData);
@@ -1065,7 +1066,7 @@
             
             let filtered = state.data.projects
                 .filter(p => p.name.toLowerCase().includes(search) && (status === 'all' || p.status === status))
-                .sort((a, b) => statusOrder[a.status] - statusOrder[b.status]); // Sort by status priority
+                .sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
 
             document.getElementById('projectsGrid').innerHTML = filtered.map(p => {
                 const pBal = state.data.transactions.filter(t => t.project_id === p.id).reduce((s,t) => s + ((t.type === 'Pengeluaran' || t.type === 'Transfer Keluar') ? -Number(t.amount) : Number(t.amount)), 0);
@@ -1114,7 +1115,6 @@
             document.getElementById('statMasuk').innerText = formatCurrency(sumMasuk+sumAwal);
             document.getElementById('statKeluar').innerText = formatCurrency(sumKeluar);
             
-            // --- BAGIAN PAGINATION (LANGKAH 2) ---
             const startIndex = (state.txPage - 1) * state.txPerPage;
             const paginatedTx = pTx.slice(startIndex, startIndex + state.txPerPage);
             const totalPages = Math.ceil(pTx.length / state.txPerPage) || 1;
@@ -1149,7 +1149,6 @@
                 </tr>
             `}).join('') || '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">Belum ada transaksi di project ini.</td></tr>';
 
-            // Render Navigasi Pagination di bawah tabel
             let paginationEl = document.getElementById('projectTxPagination');
             if(!paginationEl) {
                 paginationEl = document.createElement('div');
@@ -1233,7 +1232,6 @@
             `}).join('') || '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">Belum ada riwayat transfer.</td></tr>';
         };
 
-        // --- FORMS & CRUD ---
         const setupColorPicker = (containerId) => {
             const container = document.getElementById(containerId);
             container.addEventListener('click', (e) => {
@@ -1246,7 +1244,6 @@
         setupColorPicker('projColorPicker'); setupColorPicker('pocColorPicker');
         const getSelectedColor = (containerId) => document.getElementById(containerId).querySelector('.selected')?.dataset.color || '';
 
-        // Project CRUD
         const openNewProjectModal = () => {
             document.getElementById('formProject').reset();
             document.getElementById('projId').value = '';
@@ -1311,7 +1308,6 @@
             showToast("Status diperbarui");
         };
 
-        // Pocket CRUD
         const openNewPocketModal = () => {
             document.getElementById('formPocket').reset();
             const cp = document.getElementById('pocColorPicker');
@@ -1339,7 +1335,6 @@
             });
         };
 
-        // Transaction CRUD
         const openTransactionModal = (prefillProjId = null, prefillPocId = null, editId = null) => {
             if(state.data.projects.length === 0) return showToast("Buat project dulu!", 'error');
             if(state.data.pockets.length === 0) return showToast("Buat kantong dulu!", 'error');
@@ -1389,7 +1384,6 @@
             const pocketId = document.getElementById('transPocket').value;
             const txId = document.getElementById('transId').value;
 
-            // Validasi Saldo Pengeluaran
             if(type === 'Pengeluaran') {
                 const pocket = state.data.pockets.find(p => p.id === pocketId);
                 let currentBal = Number(pocket.balance);
@@ -1427,7 +1421,6 @@
             finally { btn.disabled = false; }
         });
 
-        // Dokumen Viewer Modal
         const viewDocs = (table, id) => {
             const item = state.data[table].find(t => t.id === id);
             if(!item) return;
@@ -1447,7 +1440,6 @@
                     if(att.type.startsWith('image/')) {
                         return `<div class="mb-4"><p class="text-xs text-slate-500 mb-1 font-medium">${att.name}</p><img src="${att.data}" class="w-full rounded-xl border border-slate-200 shadow-sm"></div>`;
                     }
-                    // Perbaikan untuk preview PDF agar tombol unduh/buka langsung tersedia jika iframe diblokir browser
                     return `<div class="mb-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-xs font-bold text-slate-700 dark:text-slate-300"><i class="ph ph-file-pdf text-rose-500"></i> ${att.name}</span>
@@ -1462,7 +1454,6 @@
             openModal('modalDocsViewer');
         };
 
-        // Transfer Logic
         const openTransferModal = (editId = null) => {
             if(state.data.projects.length === 0) return showToast("Buat minimal 1 project terlebih dahulu!", "error");
             if(state.data.pockets.length < 2) return showToast("Minimal butuh 2 kantong untuk melakukan transfer!", "error");
@@ -1501,12 +1492,10 @@
         const editTransfer = (id) => openTransferModal(id);
         const deleteTransfer = (id) => {
             confirmAction("Hapus Transfer", "Transfer dan riwayat transaksinya di Project akan dihapus. Lanjutkan?", async () => {
-                // Delete related transactions mapping
                 const relTx = state.data.transactions.filter(
                     t => t.transfer_id === id
                 );
                 for(let t of relTx) await DB.delete('transactions', t.id);
-                // Delete transfer
                 await DB.delete('transfers', id);
                 showToast("Transfer dihapus");
                 if(state.currentView === 'transfers') renderTransfers();
@@ -1530,7 +1519,6 @@
             const pFrom = state.data.pockets.find(p => p.id === from);
             const pTo = state.data.pockets.find(p => p.id === to);
             
-            // Validasi saldo (hanya untuk buat baru atau jika kantong berubah)
             let currentBal = Number(pFrom.balance);
             if (tfId) {
                 const oldTf = state.data.transfers.find(x => x.id === tfId);
@@ -1556,7 +1544,6 @@
                     await DB.update('transfers', tfId, tfPayload);
                     savedTf = { id: tfId, ...tfPayload };
                     
-                    // Bersihkan transaksi mapping yang lama
                     const oldTx = state.data.transactions.filter(
                         t => t.transfer_id === tfId
                     );
@@ -1564,11 +1551,10 @@
                     for (const t of oldTx) {
                         await DB.delete('transactions', t.id);
                     }
-                                    } else {
+                } else {
                     savedTf = await DB.insert('transfers', tfPayload);
                 }
                 
-                // Buat 2 transaksi mapping baru agar masuk ke Project
                 await DB.insert('transactions', {
                     project_id: projectId,
                     pocket_id: from,
@@ -1603,7 +1589,6 @@
             }
         });
 
-        // Tabs
         document.querySelectorAll('.proj-tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.proj-tab-btn').forEach(b => { b.classList.remove('border-primary', 'text-primary'); b.classList.add('border-transparent', 'text-slate-500'); });
@@ -1613,7 +1598,6 @@
             });
         });
 
-        // --- REPORTING SYSTEM ---
         const renderReportsForm = () => {
             document.getElementById('repProject').innerHTML = '<option value="all">Semua Project</option>' + state.data.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
             document.getElementById('repPocket').innerHTML = '<option value="all">Semua Kantong</option>' + state.data.pockets.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
@@ -1670,7 +1654,6 @@
             exportToPDF(data, `Mutasi_Kantong_${p.name.replace(/\s/g, '_')}`, `Laporan Mutasi Kantong: ${p.name}`);
         };
 
-        // UI Listeners
         document.getElementById('projectSearch').addEventListener('input', renderProjects);
         document.getElementById('projectStatusFilter').addEventListener('change', renderProjects);
         document.getElementById('openSidebar').addEventListener('click', () => document.getElementById('sidebar').classList.remove('-translate-x-full'));
@@ -1707,18 +1690,10 @@
         };
         document.addEventListener('DOMContentLoaded', initApp);
 
-   // --- TAMBAHAN FUNGSI PAGINATION (LANGKAH 3) ---
         const changeTxPage = (direction) => {
             state.txPage += direction;
             if(state.txPage < 1) state.txPage = 1;
             renderProjectDetail();
-        };
-
-        // Simpan fungsi navigate lama, lalu bungkus untuk mereset halaman ke 1 setiap kali pindah menu
-        originalNavigate = navigate; // Hapus kata 'let' di depan variabel ini
-        navigate = async (viewId, param = null) => {
-            state.txPage = 1;
-            await originalNavigate(viewId, param);
         };
     </script>
 </body>
