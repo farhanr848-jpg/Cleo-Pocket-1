@@ -1685,8 +1685,9 @@
             badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span> Supabase Connected';
             badge.className = "hidden sm:inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800";
         
+            // Pastikan loadAll selesai sepenuhnya sebelum navigasi dashboard dirender
             await DB.loadAll();
-            navigate('dashboard');
+            await navigate('dashboard');
         };
         document.addEventListener('DOMContentLoaded', initApp);
 
